@@ -13,16 +13,9 @@ class ScreenViewWindow(QDialog):
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.initTrayIcon()
 
-		pix = QPixmap("trayico.png")
-		pix = pix.copy(0, 0, 16, 16).scaled(320, 240, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.SmoothTransformation)
 		self.imgPreview = QLabel()
 		self.imgPreview.setFixedSize(320, 240)
-		self.imgPreview.setPixmap(pix)
-		#self.imgPreview = QtGui.QWidget()
-		#self.imgPreview.setFixedSize(500, 500)
-		#self.imgPreview.setP
-		#image = QtGui.QImage("trayico.png")
-		#self.imgPreview.pa
+		self.updateScreenshot()
 
 		self.btnPush = QPushButton(u"Отправка картинки")
 		self.btnPush.clicked.connect(self.pushScreen)
@@ -35,12 +28,19 @@ class ScreenViewWindow(QDialog):
 		layout.addWidget(self.btnPull)
 		self.setLayout(layout)
 
+	def updateScreenshot(self):
+		desktop_size = QtGui.QApplication.desktop().size()
+		pix = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId())
+		pix = pix.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(320, QtCore.Qt.SmoothTransformation)
+		self.imgPreview.setPixmap(pix)
+
 	def pullScreen(self):
 		"""Получить экран"""
 		print "PULL!"
 
 	def pushScreen(self):
 		"""Отправить экран"""
+		self.updateScreenshot()
 		print "PUSH!"
 
 	def initTrayIcon(self):
