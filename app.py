@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from PySide.QtCore import SIGNAL
+
 __author__ = "Mikhail Fedosov"
 
 import sys
 import PySide
-from PySide import QtGui, QtCore
+from PySide import QtGui, QtCore, QtNetwork
 from PySide.QtGui import *
 
 class ScreenViewWindow(QDialog):
@@ -22,13 +24,25 @@ class ScreenViewWindow(QDialog):
 		self.btnPull = QPushButton(u"Загрузка картинки")
 		self.btnPull.clicked.connect(self.pullScreen)
 
+		self.socket = QtNetwork.QUdpSocket(self)
+		self.socket.bind(7740)
+		self.socket.readyRead.connect(self.socketReadyRead)
+		#self.socket.writeDatagram("OKAY!", QtNetwork.QHostAddress.LocalHost, 7740)
+		self.socket.writeDatagram("OKAY!", QtNetwork.QHostAddress.Broadcast, 7740)
+
 		layout = QVBoxLayout()
 		layout.addWidget(self.imgPreview)
 		layout.addWidget(self.btnPush)
 		layout.addWidget(self.btnPull)
 		self.setLayout(layout)
 
+	def socketReadyRead(self):
+		while self.socket.hasPendingDatagrams():
+			(data, sender, senderPort) = self.socket.readDatagram(self.socket.pendingDatagramSize())
+			print sender, senderPort, data
+
 	def updateScreenshot(self):
+		"""Снять и обновить скриншот своего компьютера"""
 		desktop_size = QtGui.QApplication.desktop().size()
 		pix = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId())
 		pix = pix.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(320, QtCore.Qt.SmoothTransformation)
