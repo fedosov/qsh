@@ -1,0 +1,16 @@
+*~
+*.egg
+*.egg-info
+*.pyc
+*.pyo
+*.swp
+.idea
+.DS_Store
+.coverage
+env/
+build/
+docs/.build/
+dist/
+.tox/
+nosetests.xml
+tmp/
