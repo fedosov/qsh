@@ -3,7 +3,7 @@ __author__ = "Mikhail Fedosov <tbs.micle@gmail.com>"
 
 import logging
 
-from __init__ import *
+from qsh import *
 
 from PySide import QtNetwork
 

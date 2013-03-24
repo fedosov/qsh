@@ -5,7 +5,7 @@ __doc__ = u"Quick share for teams"
 import sys
 import logging
 
-from connector import Connector
+from networking.connector import Connector
 
 from PySide.QtGui import *
 from PySide import QtGui, QtCore
@@ -70,7 +70,7 @@ class ScreenViewWindow(QDialog):
 
 	def initTrayIcon(self):
 		"""Tray icon initialisation"""
-		self.trayIconIcon = QIcon("trayico.png")
+		self.trayIconIcon = QIcon("resources/img/trayico.png")
 
 		self.actionSendScreenshot = QAction(u"Отправить экран", self, triggered=self.pushScreen)
 		self.actionQuit = QAction(u"Выход", self, triggered=QtGui.qApp.quit)
