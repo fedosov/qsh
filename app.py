@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-__author__ = "Mikhail Fedosov"
-__maintainer__ = "Mikhail Fedosov"
-__email__ = "tbs.micle@gmail.com"
+__author__ = "Mikhail Fedosov <tbs.micle@gmail.com>"
 __doc__ = u"Quick share for teams"
 
 import sys
-import PySide
-from __init__ import *
-from PySide.QtGui import *
-from PySide.QtCore import SIGNAL
-from PySide import QtGui, QtCore, QtNetwork
+import logging
+
 from connector import Connector
+
+from PySide.QtGui import *
+from PySide import QtGui, QtCore
 
 class ScreenViewWindow(QDialog):
 	def __init__(self, parent=None):
@@ -46,22 +44,29 @@ class ScreenViewWindow(QDialog):
 		self.connector = Connector()
 		self.connector.helloAll()
 
+	def closeEvent(self, event):
+		self.connector.byeAll()
+		event.accept()
+
 	def updateScreenshot(self):
 		"""Capture screenshot"""
-		desktop_size = QtGui.QApplication.desktop().size()
-		self.screen = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId())
+		desktop_size = app.desktop().size()
+		self.screen = QtGui.QPixmap.grabWindow(app.desktop().winId())
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(640, QtCore.Qt.SmoothTransformation)
 		self.imgPreview.setPixmap(self.screen)
 
 	def pullScreen(self):
 		"""Get screen"""
-		print "PULL!"
+		logging.debug("pull_screen")
+		# TODO
 
 	def pushScreen(self):
 		"""Send screen"""
+		logging.debug("push_screen")
 		self.updateScreenshot()
+		logging.debug("update_screenshot")
+		# TODO
 		#self.submitScreen()
-		print "PUSH!"
 
 	def initTrayIcon(self):
 		"""Tray icon initialisation"""
