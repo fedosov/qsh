@@ -11,6 +11,7 @@ class Connector():
 	"""Processing network messages"""
 	def __init__(self):
 		self.known_hosts = set()
+		self.known_hosts_updated_callback = None
 		self.socket_udp = QtNetwork.QUdpSocket()
 		self.socket_udp.bind(APP_BROADCAST_PORT)
 		logging.debug("socket_bound")
@@ -31,11 +32,15 @@ class Connector():
 					if data_msg == APP_HELLO_MSG:
 						logging.debug("got_greeting_[%s][%s]" % (data_uuid, sender.toString()))
 						self.known_hosts.add((data_uuid, sender))
+						if self.known_hosts_updated_callback:
+							self.known_hosts_updated_callback()
 
 					# goodbye from other node
 					elif data_msg == APP_BYE_MSG:
 						logging.debug("got_goodbye_[%s][%s]" % (data_uuid, sender.toString()))
 						self.known_hosts.remove((data_uuid, sender))
+						if self.known_hosts_updated_callback:
+							self.known_hosts_updated_callback()
 
 	def helloAll(self):
 		"""Broadcast Hello to everyone in the network"""

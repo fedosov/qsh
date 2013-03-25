@@ -13,9 +13,17 @@ from PySide import QtGui, QtCore
 class ScreenViewWindow(QDialog):
 	def __init__(self, parent=None):
 		super(ScreenViewWindow, self).__init__(parent)
+
+		self.connector = None
+
 		self.setWindowTitle(u"Просмотр экрана")
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.initTrayIcon()
+
+		# Net init
+		self.connector = Connector()
+		self.connector.helloAll()
+		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
 
 		layout = QVBoxLayout()
 
@@ -40,9 +48,6 @@ class ScreenViewWindow(QDialog):
 		layout.addWidget(self.statusLabel)
 
 		self.setLayout(layout)
-
-		self.connector = Connector()
-		self.connector.helloAll()
 
 	def closeEvent(self, event):
 		self.connector.byeAll()
@@ -73,16 +78,26 @@ class ScreenViewWindow(QDialog):
 		self.trayIconIcon = QIcon("resources/img/trayico.png")
 
 		self.actionSendScreenshot = QAction(u"Отправить экран", self, triggered=self.pushScreen)
-		self.actionQuit = QAction(u"Выход", self, triggered=QtGui.qApp.quit)
+		self.actionQuit = QAction(u"Выход", self, triggered=self.close)
 
 		self.trayIconMenu = QMenu(self)
-		self.trayIconMenu.addAction(self.actionSendScreenshot)
-		self.trayIconMenu.addAction(self.actionQuit)
+		self.updateTrayIconMenu()
 
 		self.trayIcon = QSystemTrayIcon(self)
 		self.trayIcon.setIcon(self.trayIconIcon)
 		self.trayIcon.setContextMenu(self.trayIconMenu)
 		self.trayIcon.show()
+
+	def updateTrayIconMenu(self):
+		self.trayIconMenu.clear()
+		self.trayIconMenu.addAction(self.actionSendScreenshot)
+		self.trayIconMenu.addSeparator()
+		if self.connector and self.connector.known_hosts:
+			for host in self.connector.known_hosts:
+				print host[0]
+				self.trayIconMenu.addAction(host[1].toString())
+			self.trayIconMenu.addSeparator()
+		self.trayIconMenu.addAction(self.actionQuit)
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
