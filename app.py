@@ -16,7 +16,7 @@ class ScreenViewWindow(QDialog):
 
 		self.connector = None
 
-		self.setWindowTitle(u"Просмотр экрана")
+		self.setWindowTitle(u"Screen view")
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.initTrayIcon()
 
@@ -35,10 +35,10 @@ class ScreenViewWindow(QDialog):
 
 		# Command buttons
 		buttonBox = QtGui.QDialogButtonBox()
-		self.btnPush = QPushButton(u"Отправка картинки")
+		self.btnPush = QPushButton(u"Push screen")
 		self.btnPush.clicked.connect(self.pushScreen)
 		buttonBox.addButton(self.btnPush, QtGui.QDialogButtonBox.ActionRole)
-		self.btnPull = QPushButton(u"Загрузка картинки")
+		self.btnPull = QPushButton(u"Pull screen")
 		self.btnPull.clicked.connect(self.pullScreen)
 		buttonBox.addButton(self.btnPull, QtGui.QDialogButtonBox.ActionRole)
 		layout.addWidget(buttonBox)
@@ -77,8 +77,8 @@ class ScreenViewWindow(QDialog):
 		"""Tray icon initialisation"""
 		self.trayIconIcon = QIcon("resources/img/trayico.png")
 
-		self.actionSendScreenshot = QAction(u"Отправить экран", self, triggered=self.pushScreen)
-		self.actionQuit = QAction(u"Выход", self, triggered=self.close)
+		self.actionSendScreenshot = QAction(u"Push screen", self, triggered=self.pushScreen)
+		self.actionQuit = QAction(u"Quit", self, triggered=self.close)
 
 		self.trayIconMenu = QMenu(self)
 		self.updateTrayIconMenu()
