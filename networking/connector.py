@@ -3,12 +3,13 @@ __author__ = "Mikhail Fedosov <tbs.micle@gmail.com>"
 
 import logging
 
-from qsh import *
-
 from PySide import QtNetwork
 
+from qsh import *
+
 class Connector():
-	"""Processing network messages"""
+	""" Processing network messages
+	"""
 	def __init__(self):
 		self.known_hosts = set()
 		self.known_hosts_updated_callback = None
@@ -18,7 +19,8 @@ class Connector():
 		self.socket_udp.readyRead.connect(self.udpReadyRead)
 
 	def udpReadyRead(self):
-		"""Incoming UDP message (datagram)"""
+		""" Incoming UDP message (datagram)
+		"""
 		while self.socket_udp.hasPendingDatagrams():
 			(data, sender, senderPort) = self.socket_udp.readDatagram(self.socket_udp.pendingDatagramSize())
 			if "|" in data:
@@ -30,29 +32,34 @@ class Connector():
 
 					# greeting from other node
 					if data_msg == APP_HELLO_MSG:
-						logging.debug("got_greeting_[%s][%s]" % (data_uuid, sender.toString()))
-						self.known_hosts.add((data_uuid, sender))
+						port = data_fields[2]
+						logging.debug("got_greeting_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
+						self.known_hosts.add((data_uuid, sender, port))
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
 
 					# goodbye from other node
 					elif data_msg == APP_BYE_MSG:
-						logging.debug("got_goodbye_[%s][%s]" % (data_uuid, sender.toString()))
-						self.known_hosts.remove((data_uuid, sender))
+						port = data_fields[2]
+						logging.debug("got_goodbye_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
+						self.known_hosts.remove((data_uuid, sender, port))
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
 
 	def helloAll(self):
-		"""Broadcast Hello to everyone in the network"""
-		self.socket_udp.writeDatagram("%s|%s" % (APP_HELLO_MSG, APP_UUID), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
+		""" Broadcast Hello to everyone in the network
+		"""
+		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_HELLO_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
 		logging.debug("hello_all")
 
 	def byeAll(self):
-		"""Broadcast Bye to everyone in the network"""
-		self.socket_udp.writeDatagram("%s|%s" % (APP_BYE_MSG, APP_UUID), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
+		""" Broadcast Bye to everyone in the network
+		"""
+		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_BYE_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
 		logging.debug("bye_all")
 
-# JUST INFO:
+
+# FYI:
 
 #	def submitScreen(self):
 #		# Creating screen image buffer

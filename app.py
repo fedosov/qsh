@@ -5,10 +5,11 @@ __doc__ = u"Quick share for teams"
 import sys
 import logging
 
-from networking.connector import Connector
-
 from PySide.QtGui import *
 from PySide import QtGui, QtCore
+
+from networking.connector import Connector
+
 
 class ScreenViewWindow(QDialog):
 	def __init__(self, parent=None):
@@ -54,19 +55,22 @@ class ScreenViewWindow(QDialog):
 		event.accept()
 
 	def updateScreenshot(self):
-		"""Capture screenshot"""
+		""" Capture screenshot
+		"""
 		desktop_size = app.desktop().size()
 		self.screen = QtGui.QPixmap.grabWindow(app.desktop().winId())
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(640, QtCore.Qt.SmoothTransformation)
 		self.imgPreview.setPixmap(self.screen)
 
 	def pullScreen(self):
-		"""Get screen"""
+		""" Get screen
+		"""
 		logging.debug("pull_screen")
 		# TODO
 
 	def pushScreen(self):
-		"""Send screen"""
+		""" Send screen
+		"""
 		logging.debug("push_screen")
 		self.updateScreenshot()
 		logging.debug("update_screenshot")
@@ -74,7 +78,8 @@ class ScreenViewWindow(QDialog):
 		#self.submitScreen()
 
 	def initTrayIcon(self):
-		"""Tray icon initialisation"""
+		""" Tray icon initialisation
+		"""
 		self.trayIconIcon = QIcon("resources/img/trayico.png")
 
 		self.actionSendScreenshot = QAction(u"Push screen", self, triggered=self.pushScreen)
@@ -94,10 +99,10 @@ class ScreenViewWindow(QDialog):
 		self.trayIconMenu.addSeparator()
 		if self.connector and self.connector.known_hosts:
 			for host in self.connector.known_hosts:
-				print host[0]
-				self.trayIconMenu.addAction(host[1].toString())
+				self.trayIconMenu.addAction("%s:%s" % (host[1].toString(), host[2]))
 			self.trayIconMenu.addSeparator()
 		self.trayIconMenu.addAction(self.actionQuit)
+
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
