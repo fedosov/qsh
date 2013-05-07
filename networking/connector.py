@@ -7,15 +7,17 @@ from PySide import QtNetwork
 
 from qsh import *
 
+
 class Connector():
 	""" Processing network messages
 	"""
 	def __init__(self):
+		self.logger = logging.getLogger(__name__)
 		self.known_hosts = set()
 		self.known_hosts_updated_callback = None
 		self.socket_udp = QtNetwork.QUdpSocket()
-		self.socket_udp.bind(APP_BROADCAST_PORT)
-		logging.debug("socket_bound")
+		self.socket_udp.bind(APP_BROADCAST_PORT, QtNetwork.QUdpSocket.ReuseAddressHint)
+		self.logger.debug("socket_bound")
 		self.socket_udp.readyRead.connect(self.udpReadyRead)
 
 	def udpReadyRead(self):
@@ -23,6 +25,7 @@ class Connector():
 		"""
 		while self.socket_udp.hasPendingDatagrams():
 			(data, sender, senderPort) = self.socket_udp.readDatagram(self.socket_udp.pendingDatagramSize())
+			self.logger.debug("[%s] <-- `%s`" % (APP_UUID, data))
 			if "|" in data:
 				data_fields = unicode(data).split("|")
 				data_msg, data_uuid = data_fields[0], data_fields[1]
@@ -32,16 +35,22 @@ class Connector():
 
 					# greeting from other node
 					if data_msg == APP_HELLO_MSG:
-						port = data_fields[2]
-						logging.debug("got_greeting_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
+						flag = data_fields[2]
+						port = data_fields[3]
+						self.logger.debug("got_greeting_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
 						self.known_hosts.add((data_uuid, sender, port))
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
+						# and so, be friendly
+						if flag == 'reply':
+							#time.sleep(1)
+							self.helloTo(sender, flag='silent')
+							self.logger.debug("hello_mate")
 
 					# goodbye from other node
 					elif data_msg == APP_BYE_MSG:
 						port = data_fields[2]
-						logging.debug("got_goodbye_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
+						self.logger.debug("got_goodbye_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
 						self.known_hosts.remove((data_uuid, sender, port))
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
@@ -49,14 +58,21 @@ class Connector():
 	def helloAll(self):
 		""" Broadcast Hello to everyone in the network
 		"""
-		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_HELLO_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
-		logging.debug("hello_all")
+		self.helloTo(QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast))
+		self.logger.debug("hello_all")
+
+	def helloTo(self, address, flag='reply'):
+		""" Hello to your teammate
+
+		flag: reply|silent -- determine whether you want to receive response greetings from other mates
+		"""
+		self.socket_udp.writeDatagram("%s|%s|%s|%s" % (APP_HELLO_MSG, APP_UUID, flag, APP_PORT), address, APP_BROADCAST_PORT)
 
 	def byeAll(self):
 		""" Broadcast Bye to everyone in the network
 		"""
 		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_BYE_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
-		logging.debug("bye_all")
+		self.logger.debug("bye_all")
 
 
 # FYI:

@@ -10,6 +10,8 @@ from PySide import QtGui, QtCore
 
 from networking.connector import Connector
 
+logger = logging.getLogger(__name__)
+
 
 class ScreenViewWindow(QDialog):
 	def __init__(self, parent=None):
@@ -65,15 +67,15 @@ class ScreenViewWindow(QDialog):
 	def pullScreen(self):
 		""" Get screen
 		"""
-		logging.debug("pull_screen")
+		logger.debug("pull_screen")
 		# TODO
 
 	def pushScreen(self):
 		""" Send screen
 		"""
-		logging.debug("push_screen")
+		logger.debug("push_screen")
 		self.updateScreenshot()
-		logging.debug("update_screenshot")
+		logger.debug("update_screenshot")
 		# TODO
 		#self.submitScreen()
 
@@ -95,6 +97,14 @@ class ScreenViewWindow(QDialog):
 
 	def updateTrayIconMenu(self):
 		self.trayIconMenu.clear()
+
+		# DEBUG (app UUID in tray icon popup menu):
+		from qsh import APP_UUID
+		trayIconMenuUUIDAction = QAction(unicode(APP_UUID), self)
+		trayIconMenuUUIDAction.setDisabled(True)
+		self.trayIconMenu.addAction(trayIconMenuUUIDAction)
+		self.trayIconMenu.addSeparator()
+
 		self.trayIconMenu.addAction(self.actionSendScreenshot)
 		self.trayIconMenu.addSeparator()
 		if self.connector and self.connector.known_hosts:
