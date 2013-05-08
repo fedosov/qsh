@@ -82,7 +82,8 @@ class ScreenViewWindow(QDialog):
 	def initTrayIcon(self):
 		""" Tray icon initialisation
 		"""
-		self.trayIconIcon = QIcon("resources/img/trayico.png")
+		self.trayIconIcon = QIcon("resources/img/menu_bar_extras_icon.png")
+		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
 
 		self.actionSendScreenshot = QAction(u"Push screen", self, triggered=self.pushScreen)
 		self.actionQuit = QAction(u"Quit", self, triggered=self.close)
