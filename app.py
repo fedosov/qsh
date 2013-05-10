@@ -5,15 +5,19 @@ __doc__ = u"Quick share for teams"
 import sys
 import logging
 
+# PySide
 from PySide.QtGui import *
 from PySide import QtGui, QtCore
 
+# QSH
 from networking.connector import Connector
+from qsh import SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
 
 logger = logging.getLogger(__name__)
 
 
 class ScreenViewWindow(QDialog):
+
 	def __init__(self, parent=None):
 		super(ScreenViewWindow, self).__init__(parent)
 
@@ -36,20 +40,6 @@ class ScreenViewWindow(QDialog):
 		self.updateScreenshot()
 		layout.addWidget(self.imgPreview)
 
-		# Command buttons
-		buttonBox = QtGui.QDialogButtonBox()
-		self.btnPush = QPushButton(u"Push screen")
-		self.btnPush.clicked.connect(self.pushScreen)
-		buttonBox.addButton(self.btnPush, QtGui.QDialogButtonBox.ActionRole)
-		self.btnPull = QPushButton(u"Pull screen")
-		self.btnPull.clicked.connect(self.pullScreen)
-		buttonBox.addButton(self.btnPull, QtGui.QDialogButtonBox.ActionRole)
-		layout.addWidget(buttonBox)
-
-		# Status label
-		self.statusLabel = QLabel(u"Статус")
-		layout.addWidget(self.statusLabel)
-
 		self.setLayout(layout)
 
 	def closeEvent(self, event):
@@ -64,20 +54,14 @@ class ScreenViewWindow(QDialog):
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(640, QtCore.Qt.SmoothTransformation)
 		self.imgPreview.setPixmap(self.screen)
 
-	def pullScreen(self):
-		""" Get screen
-		"""
-		logger.debug("pull_screen")
-		# TODO
-
-	def pushScreen(self):
-		""" Send screen
-		"""
-		logger.debug("push_screen")
+	def shareScreen(self, host, port):
 		self.updateScreenshot()
-		logger.debug("update_screenshot")
-		# TODO
-		#self.submitScreen()
+		screenBA = QtCore.QByteArray()
+		screenBuf = QtCore.QBuffer(screenBA)
+		screenBuf.open(QtCore.QBuffer.WriteOnly)
+		self.screen.save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
+		#screenData = screenBuf.data()
+		self.connector.submitScreen(host, port, screenBA)
 
 	def initTrayIcon(self):
 		""" Tray icon initialisation
@@ -85,7 +69,6 @@ class ScreenViewWindow(QDialog):
 		self.trayIconIcon = QIcon("resources/img/menu_bar_extras_icon.png")
 		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
 
-		self.actionSendScreenshot = QAction(u"Push screen", self, triggered=self.pushScreen)
 		self.actionQuit = QAction(u"Quit", self, triggered=self.close)
 
 		self.trayIconMenu = QMenu(self)
@@ -106,11 +89,10 @@ class ScreenViewWindow(QDialog):
 		self.trayIconMenu.addAction(trayIconMenuUUIDAction)
 		self.trayIconMenu.addSeparator()
 
-		self.trayIconMenu.addAction(self.actionSendScreenshot)
-		self.trayIconMenu.addSeparator()
 		if self.connector and self.connector.known_hosts:
 			for host in self.connector.known_hosts:
-				self.trayIconMenu.addAction("%s:%s" % (host[1].toString(), host[2]))
+				host_str = "%s:%s" % (host[1].toString(), host[2])
+				self.trayIconMenu.addAction(QAction(host_str, self, triggered=lambda: self.shareScreen(host[1], host[2])))
 			self.trayIconMenu.addSeparator()
 		self.trayIconMenu.addAction(self.actionQuit)
 
