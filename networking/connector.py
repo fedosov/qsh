@@ -17,6 +17,7 @@ class Connector():
 	def __init__(self):
 		self.known_hosts = set()
 		self.known_hosts_updated_callback = None
+		self.got_image_callback = None
 
 		# UDP
 		self.socket_udp = QtNetwork.QUdpSocket()
@@ -38,7 +39,8 @@ class Connector():
 		socket.waitForReadyRead(1000)
 		data = QtCore.QByteArray(socket.readAll())
 		logger.debug("<-- TCP read %i bytes" % data.size())
-		# TODO: show image
+		if self.got_image_callback:
+			self.got_image_callback(data)
 
 	def submitScreen(self, host, port, data):
 		socket = QtNetwork.QTcpSocket()

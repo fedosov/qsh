@@ -11,7 +11,7 @@ from PySide import QtGui, QtCore
 
 # QSH
 from networking.connector import Connector
-from qsh import SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
+from qsh import APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class ScreenViewWindow(QDialog):
 
 		self.connector = None
 
-		self.setWindowTitle(u"Screen view")
+		self.setWindowTitle(u"Screen view [%s]" % APP_UUID)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.initTrayIcon()
 
@@ -31,6 +31,7 @@ class ScreenViewWindow(QDialog):
 		self.connector = Connector()
 		self.connector.helloAll()
 		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
+		self.connector.got_image_callback = self.showReceivedImage
 
 		layout = QVBoxLayout()
 
@@ -46,13 +47,23 @@ class ScreenViewWindow(QDialog):
 		self.connector.byeAll()
 		event.accept()
 
+	def showReceivedImage(self, data):
+		""" Show received screenshot
+		"""
+		screen = QtGui.QPixmap()
+		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
+		self.imgPreview.setPixmap(screen)
+		#
+		self.show()
+		self.raise_()
+		self.activateWindow()
+
 	def updateScreenshot(self):
 		""" Capture screenshot
 		"""
 		desktop_size = app.desktop().size()
 		self.screen = QtGui.QPixmap.grabWindow(app.desktop().winId())
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(640, QtCore.Qt.SmoothTransformation)
-		self.imgPreview.setPixmap(self.screen)
 
 	def shareScreen(self, host, port):
 		self.updateScreenshot()
@@ -60,7 +71,6 @@ class ScreenViewWindow(QDialog):
 		screenBuf = QtCore.QBuffer(screenBA)
 		screenBuf.open(QtCore.QBuffer.WriteOnly)
 		self.screen.save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
-		#screenData = screenBuf.data()
 		self.connector.submitScreen(host, port, screenBA)
 
 	def initTrayIcon(self):
