@@ -11,7 +11,7 @@ from PySide import QtGui, QtCore
 
 # QSH
 from networking.connector import Connector
-from qsh import APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
+from config import APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class ScreenViewWindow(QDialog):
 		self.trayIconMenu.clear()
 
 		# DEBUG (app UUID in tray icon popup menu):
-		from qsh import APP_UUID
+		from config import APP_UUID
 		trayIconMenuUUIDAction = QAction(unicode(APP_UUID), self)
 		trayIconMenuUUIDAction.setDisabled(True)
 		self.trayIconMenu.addAction(trayIconMenuUUIDAction)

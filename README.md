@@ -11,6 +11,13 @@ $ brew install qt pyside
 $ cp -r /usr/local/lib/python2.7/site-packages/PySide env/lib/python2.7/site-packages/
 ```
 
+## OS X Build
+
+```
+$ pip install py2app
+$ python setup-mac.py py2app
+```
+
 ## Authors
 
 **Mikhail Fedosov**

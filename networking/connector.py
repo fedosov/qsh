@@ -5,7 +5,7 @@ import logging
 
 from PySide import QtNetwork, QtCore
 
-from qsh import *
+from config import *
 
 logger = logging.getLogger(__name__)
 
@@ -109,21 +109,3 @@ class Connector():
 		"""
 		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_BYE_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
 		logger.debug("bye_all")
-
-
-# FYI:
-
-#	def socketReadyRead(self):
-#		print "socketReadyRead"
-#		allData = QtCore.QByteArray()
-#		recv_packets = 0
-#		while self.socket.hasPendingDatagrams():
-#			#print "IN <<", self.socket.pendingDatagramSize()
-#			(data, sender, senderPort) = self.socket.readDatagram(self.socket.pendingDatagramSize())
-#			allData += data
-#			recv_packets += 1
-#		print "RECEIVED %i BYTES, %i PACKETS" % (len(allData), recv_packets)
-#		self.screen = QtGui.QPixmap()
-#		self.screen.loadFromData(allData, SCREEN_IMAGE_TYPE)
-#		self.imgPreview.setPixmap(self.screen)
-
