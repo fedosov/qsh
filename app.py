@@ -11,7 +11,7 @@ from PySide import QtGui, QtCore
 
 # QSH
 from networking.connector import Connector
-from config import APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
+from config import AppConfig, APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,12 @@ class ScreenViewWindow(QDialog):
 		self.screen.save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
 		self.connector.submitScreen(host, port, screenBA)
 
+	def config(self):
+		config_dialog = ConfigDialog(self)
+		config_dialog.showNormal()
+		config_dialog.activateWindow()
+		config_dialog.raise_()
+
 	def initTrayIcon(self):
 		""" Tray icon initialisation
 		"""
@@ -80,6 +86,7 @@ class ScreenViewWindow(QDialog):
 		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
 
 		self.actionQuit = QAction(u"Quit", self, triggered=self.close)
+		self.actionConfig = QAction(u"Configuration", self, triggered=self.config)
 
 		self.trayIconMenu = QMenu(self)
 		self.updateTrayIconMenu()
@@ -94,17 +101,57 @@ class ScreenViewWindow(QDialog):
 
 		# DEBUG (app UUID in tray icon popup menu):
 		from config import APP_UUID
-		trayIconMenuUUIDAction = QAction(unicode(APP_UUID), self)
+		username = AppConfig.get_username()
+		if username:
+			trayIconMenuUUIDAction = QAction(unicode(username), self)
+		else:
+			trayIconMenuUUIDAction = QAction(unicode(APP_UUID), self)
 		trayIconMenuUUIDAction.setDisabled(True)
 		self.trayIconMenu.addAction(trayIconMenuUUIDAction)
 		self.trayIconMenu.addSeparator()
 
 		if self.connector and self.connector.known_hosts:
-			for host in self.connector.known_hosts:
-				host_str = "%s:%s" % (host[1].toString(), host[2])
-				self.trayIconMenu.addAction(QAction(host_str, self, triggered=lambda: self.shareScreen(host[1], host[2])))
+			for host_uuid, host_data in self.connector.known_hosts.iteritems():
+				if host_data["username"]:
+					host_str = "%s - [%s:%s]" % (host_data["username"].decode("utf-8"), host_data["host"].toString(), host_data["port"])
+				else:
+					host_str = "[%s:%s]" % (host_data["host"].toString(), host_data["port"])
+				self.trayIconMenu.addAction(QAction(host_str, self, triggered=lambda: self.shareScreen(host_data["host"], host_data["port"])))
 			self.trayIconMenu.addSeparator()
+		self.trayIconMenu.addAction(self.actionConfig)
 		self.trayIconMenu.addAction(self.actionQuit)
+
+
+class ConfigDialog(QDialog):
+
+	def __init__(self, parent=None):
+		super(ConfigDialog, self).__init__(parent)
+
+		self.setWindowTitle(u"QSH config")
+		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+
+		layout = QVBoxLayout()
+
+		layout.addWidget(QtGui.QLabel("Username:"))
+		self.editUsername = QtGui.QLineEdit(AppConfig.get_username())
+		layout.addWidget(self.editUsername)
+
+		buttonBox = QtGui.QDialogButtonBox()
+		self.btnCancel = QPushButton(u"Cancel")
+		self.btnCancel.clicked.connect(self.close)
+		buttonBox.addButton(self.btnCancel, QtGui.QDialogButtonBox.RejectRole)
+		self.btnSave = QPushButton(u"Save")
+		self.btnSave.clicked.connect(self.save)
+		buttonBox.addButton(self.btnSave, QtGui.QDialogButtonBox.AcceptRole)
+		layout.addWidget(buttonBox)
+
+		self.setLayout(layout)
+
+	def save(self):
+		AppConfig.set_username(self.editUsername.text())
+		self.parent().updateTrayIconMenu()
+		self.parent().connector.helloAll()
+		self.close()
 
 
 if __name__ == '__main__':

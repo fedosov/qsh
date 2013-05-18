@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "Mikhail Fedosov <tbs.micle@gmail.com>"
 
+import base64
 import logging
 
 from PySide import QtNetwork, QtCore
@@ -15,7 +16,7 @@ class Connector():
 	""" Processing network messages
 	"""
 	def __init__(self):
-		self.known_hosts = set()
+		self.known_hosts = dict()
 		self.known_hosts_updated_callback = None
 		self.got_image_callback = None
 
@@ -78,10 +79,16 @@ class Connector():
 
 					# greeting from other node
 					if data_msg == APP_HELLO_MSG:
-						flag = data_fields[2]
-						port = data_fields[3]
+						username = data_fields[2]
+						flag = data_fields[3]
+						port = data_fields[4]
 						logger.debug("got_greeting_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
-						self.known_hosts.add((data_uuid, sender, int(port)))
+						self.known_hosts[data_uuid] = \
+						{
+							'host': sender,
+						    'port': int(port),
+						    'username': base64.decodestring(username)
+						}
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
 						# and so, be friendly
@@ -93,7 +100,7 @@ class Connector():
 					elif data_msg == APP_BYE_MSG:
 						port = data_fields[2]
 						logger.debug("got_goodbye_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
-						self.known_hosts.remove((data_uuid, sender, int(port)))
+						del self.known_hosts[data_uuid]
 						if self.known_hosts_updated_callback:
 							self.known_hosts_updated_callback()
 
@@ -101,7 +108,7 @@ class Connector():
 		""" Broadcast Hello to everyone in the network
 		flag: reply|silent -- determine whether you want to receive response greetings from other mates
 		"""
-		self.socket_udp.writeDatagram("%s|%s|%s|%s" % (APP_HELLO_MSG, APP_UUID, flag, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
+		self.socket_udp.writeDatagram("%s|%s|%s|%s|%s" % (APP_HELLO_MSG, APP_UUID, base64.encodestring(AppConfig.get_username().encode("utf-8")), flag, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
 		logger.debug("hello_all")
 
 	def byeAll(self):
