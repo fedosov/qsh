@@ -2,7 +2,7 @@
 
 Rapid sharing screenshots with teammates.
 
-![](http://i.imgur.com/DQqFnKE.png)
+![](http://i.imgur.com/sQbcmTO.png)
 
 ## Environment
 
