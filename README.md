@@ -1,8 +1,10 @@
 # QSH
 
-Rapid sharing screenshots with teammates.
+Little app for a quick sharing screen with your colleagues.
 
 ![](http://i.imgur.com/sQbcmTO.png)
+
+"Hey, quick, come here, look at what's on my screen!" — never again.
 
 ## Environment
 
