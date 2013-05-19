@@ -213,15 +213,6 @@ class ConfigDialog(QDialog):
 		self.close()
 
 
-class ScreenDialog(QDialog):
-
-	def __init__(self, parent=None):
-		super(ScreenDialog, self).__init__(parent)
-
-		self.setStyleSheet("{ background: #ff0000; }")
-		self.setWindowTitle(u"Screen dialog")
-
-
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	windowScreenView = ScreenViewWindow()
