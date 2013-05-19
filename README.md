@@ -1,10 +1,14 @@
 # QSH
 
-Little app for a quick sharing screen with your colleagues.
+> "Hey, quick, come here, look at what's on my screen!" — never again.
 
 ![](http://i.imgur.com/sQbcmTO.png)
 
-"Hey, quick, come here, look at what's on my screen!" — never again.
+Little app for a quick demonstration screen to your colleagues.
+
+## Screenshots
+
+![](http://i.imgur.com/ybmWhVM.png)
 
 ## Environment
 
@@ -28,7 +32,7 @@ $ python setup-mac.py py2app
 
 ## License
 
-> Copyright (C) 2012 Fedosov Mikhail (tbs.micle@gmail.com)
+> Copyright © 2012 Fedosov Mikhail (tbs.micle@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
