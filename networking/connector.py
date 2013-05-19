@@ -20,6 +20,8 @@ class Connector():
 		self.known_hosts_updated_callback = None
 		self.got_image_callback = None
 
+		self.max_socket_read_iterations = 20
+
 		# UDP
 		self.socket_udp = QtNetwork.QUdpSocket()
 		self.socket_udp.bind(APP_BROADCAST_PORT, QtNetwork.QUdpSocket.ReuseAddressHint)
@@ -37,8 +39,22 @@ class Connector():
 		logger.debug("<-- TCP connection")
 		socket = QtNetwork.QTcpSocket()
 		socket.setSocketDescriptor(socket_descriptor)
-		socket.waitForReadyRead(1000)
-		data = QtCore.QByteArray(socket.readAll())
+		socket.waitForReadyRead(-1)
+
+		data_stream = QtCore.QDataStream(socket)
+		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
+		data_size = data_stream.readUInt32()
+		data_stream.unsetDevice()
+
+		data = QtCore.QByteArray()
+
+		read_iterations = 0
+
+		while data.size() < data_size and read_iterations < self.max_socket_read_iterations:
+			socket.waitForReadyRead(-1)
+			data.append(socket.readAll())
+			read_iterations += 1
+
 		logger.debug("<-- TCP read %i bytes" % data.size())
 		if self.got_image_callback:
 			self.got_image_callback(data)
@@ -52,12 +68,16 @@ class Connector():
 			logger.info("--> TCP connection timeout")
 			return
 
-		socket.write(data)
+		data_stream = QtCore.QDataStream(socket)
+		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
+		data_stream.writeUInt32(data.size())
+		data_stream.unsetDevice()
+		logger.debug("--> TCP sending %i bytes" % socket.write(data))
 
 		if not socket.waitForBytesWritten():
 			logger.error("--> TCP write error: %s" % socket.error())
 			return
-		logger.debug("--> TCP data written %i bytes" % data.size())
+		logger.debug("--> TCP data sent (was %i bytes)" % data.size())
 
 		socket.disconnectFromHost()
 		logger.debug("--> TCP disconnected")

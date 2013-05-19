@@ -37,7 +37,7 @@ class ScreenViewWindow(QDialog):
 
 		# Screenshot thumbnail
 		self.imgPreview = QLabel()
-		self.imgPreview.setFixedSize(640, 480)
+		self.imgPreview.setFixedHeight(120)
 		self.updateScreenshot()
 		layout.addWidget(self.imgPreview)
 
@@ -63,7 +63,7 @@ class ScreenViewWindow(QDialog):
 		"""
 		desktop_size = app.desktop().size()
 		self.screen = QtGui.QPixmap.grabWindow(app.desktop().winId())
-		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToWidth(640, QtCore.Qt.SmoothTransformation)
+		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 
 	def shareScreen(self, host, port):
 		self.updateScreenshot()
@@ -152,6 +152,15 @@ class ConfigDialog(QDialog):
 		self.parent().updateTrayIconMenu()
 		self.parent().connector.helloAll()
 		self.close()
+
+
+class ScreenDialog(QDialog):
+
+	def __init__(self, parent=None):
+		super(ScreenDialog, self).__init__(parent)
+
+		self.setStyleSheet("{ background: #ff0000; }")
+		self.setWindowTitle(u"Screen dialog")
 
 
 if __name__ == '__main__':
