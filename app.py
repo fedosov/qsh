@@ -64,11 +64,31 @@ class ScreenViewWindow(QDialog):
 		screen_preview_label.setFont(QFont("Tahoma", 10))
 		screen_preview_box.layout().addWidget(screen_preview_label)
 
+		screen_preview_show = QPushButton("Show")
+		screen_preview_show.screen_preview_label = screen_preview_label
+		screen_preview_show.clicked.connect(self.screenPreviewShowClicked)
+		screen_preview_box.layout().addWidget(screen_preview_show)
+
+		screen_preview_remove = QPushButton("Remove")
+		screen_preview_remove.screen_preview_box = screen_preview_box
+		screen_preview_remove.clicked.connect(self.screenPreviewRemoveClicked)
+		screen_preview_box.layout().addWidget(screen_preview_remove)
+
 		self.layout().addWidget(screen_preview_box)
 		#
 		self.show()
 		self.raise_()
 		self.activateWindow()
+
+	def screenPreviewShowClicked(self):
+		screen_preview_label = self.sender().screen_preview_label
+		assert isinstance(screen_preview_label, QLabel)
+		screen_preview_label.showFullScreen()
+
+	def screenPreviewRemoveClicked(self):
+		screen_preview_box = self.sender().screen_preview_box
+		assert isinstance(screen_preview_box, QFrame)
+		screen_preview_box.deleteLater()
 
 	def updateScreenshot(self):
 		""" Capture screenshot
