@@ -45,6 +45,7 @@ class Connector():
 		data_stream = QtCore.QDataStream(socket)
 		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
 		data_size = data_stream.readUInt32()
+		data_uuid = data_stream.readString()
 		data_stream.unsetDevice()
 
 		logger.debug("<-- TCP incoming data size: %i bytes" % data_size)
@@ -61,8 +62,8 @@ class Connector():
 			socket.waitForReadyRead(100)
 
 		logger.debug("<-- TCP read %i bytes" % data.size())
-		if self.got_image_callback:
-			self.got_image_callback(data)
+		if data.size() > 0 and self.got_image_callback:
+			self.got_image_callback(data_uuid, data)
 
 	def submitScreen(self, host, port, data):
 		socket = QtNetwork.QTcpSocket()
@@ -78,6 +79,7 @@ class Connector():
 		data_stream = QtCore.QDataStream(socket)
 		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
 		data_stream.writeUInt32(data.size())
+		data_stream.writeString(unicode(APP_UUID))
 		data_stream.unsetDevice()
 
 		socket.write(data.data())

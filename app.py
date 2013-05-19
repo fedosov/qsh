@@ -4,6 +4,7 @@ __doc__ = u"Quick share for teams"
 
 import sys
 import logging
+import datetime
 
 # PySide
 from PySide.QtGui import *
@@ -23,7 +24,8 @@ class ScreenViewWindow(QDialog):
 
 		self.connector = None
 
-		self.setWindowTitle(u"Screen view [%s]" % APP_UUID)
+		self.setWindowTitle(u"Screen view" % APP_UUID)
+		self.resize(640, 120)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.initTrayIcon()
 
@@ -33,27 +35,36 @@ class ScreenViewWindow(QDialog):
 		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
 		self.connector.got_image_callback = self.showReceivedImage
 
-		layout = QVBoxLayout()
-
-		# Screenshot thumbnail
-		self.imgPreview = QLabel()
-		self.imgPreview.setFixedHeight(120)
-		self.updateScreenshot()
-		layout.addWidget(self.imgPreview)
-
+		layout = QHBoxLayout()
 		self.setLayout(layout)
 
 	def closeEvent(self, event):
 		self.connector.byeAll()
 		event.accept()
 
-	def showReceivedImage(self, data):
+	def showReceivedImage(self, data_uuid, data):
 		""" Show received screenshot
 		"""
+		screen_preview_box = QFrame()
+		screen_preview_box.setLayout(QVBoxLayout())
+		screen_preview = QLabel()
+		screen_preview.setFixedHeight(120)
 		screen = QtGui.QPixmap()
 		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
 		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
-		self.imgPreview.setPixmap(screen)
+		screen_preview.setPixmap(screen)
+
+		screen_preview_box.layout().addWidget(screen_preview)
+		screen_preview_label_text = "Unknown user"
+		screen_preview_label = QLabel()
+		if data_uuid in self.connector.known_hosts.keys():
+			screen_preview_label_text = self.connector.known_hosts[data_uuid]["username"]
+		screen_preview_label_text = "%s @ %s" % (screen_preview_label_text, datetime.datetime.now().strftime("%H:%M"))
+		screen_preview_label.setText(screen_preview_label_text)
+		screen_preview_label.setFont(QFont("Tahoma", 10))
+		screen_preview_box.layout().addWidget(screen_preview_label)
+
+		self.layout().addWidget(screen_preview_box)
 		#
 		self.show()
 		self.raise_()
