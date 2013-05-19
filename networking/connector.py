@@ -39,21 +39,26 @@ class Connector():
 		logger.debug("<-- TCP connection")
 		socket = QtNetwork.QTcpSocket()
 		socket.setSocketDescriptor(socket_descriptor)
-		socket.waitForReadyRead(-1)
+
+		socket.waitForReadyRead(1000)
 
 		data_stream = QtCore.QDataStream(socket)
 		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
 		data_size = data_stream.readUInt32()
 		data_stream.unsetDevice()
 
+		logger.debug("<-- TCP incoming data size: %i bytes" % data_size)
+
 		data = QtCore.QByteArray()
 
 		read_iterations = 0
 
 		while data.size() < data_size and read_iterations < self.max_socket_read_iterations:
-			socket.waitForReadyRead(-1)
-			data.append(socket.readAll())
+			data_read = socket.readAll()
+			logger.debug("<-- READ %i bytes" % data_read.size())
+			data.append(data_read)
 			read_iterations += 1
+			socket.waitForReadyRead(100)
 
 		logger.debug("<-- TCP read %i bytes" % data.size())
 		if self.got_image_callback:
@@ -63,21 +68,25 @@ class Connector():
 		socket = QtNetwork.QTcpSocket()
 
 		socket.connectToHost(host, port)
-		logger.debug("--> TCP connect...")
-		if not socket.waitForConnected(1000):
-			logger.info("--> TCP connection timeout")
-			return
+		if not socket.waitForConnected(100):
+			# retry connection
+			socket.connectToHost(host, port)
+			if not socket.waitForConnected(100):
+				logger.info("--> TCP connection timeout")
+				return
 
 		data_stream = QtCore.QDataStream(socket)
 		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
 		data_stream.writeUInt32(data.size())
 		data_stream.unsetDevice()
-		logger.debug("--> TCP sending %i bytes" % socket.write(data))
 
-		if not socket.waitForBytesWritten():
-			logger.error("--> TCP write error: %s" % socket.error())
-			return
-		logger.debug("--> TCP data sent (was %i bytes)" % data.size())
+		socket.write(data.data())
+		socket.flush()
+
+		while socket.bytesToWrite() > 0:
+			socket.waitForBytesWritten(100)
+
+		logger.debug("--> TCP written %i bytes" % data.size())
 
 		socket.disconnectFromHost()
 		logger.debug("--> TCP disconnected")

@@ -52,6 +52,7 @@ class ScreenViewWindow(QDialog):
 		"""
 		screen = QtGui.QPixmap()
 		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
+		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 		self.imgPreview.setPixmap(screen)
 		#
 		self.show()
@@ -63,7 +64,7 @@ class ScreenViewWindow(QDialog):
 		"""
 		desktop_size = app.desktop().size()
 		self.screen = QtGui.QPixmap.grabWindow(app.desktop().winId())
-		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height()).scaledToHeight(120, QtCore.Qt.SmoothTransformation)
+		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height())
 
 	def shareScreen(self, host, port):
 		self.updateScreenshot()
