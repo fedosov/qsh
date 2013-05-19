@@ -8,7 +8,7 @@ Little app for a quick demonstration screen to your colleagues.
 
 ## Screenshots
 
-![](http://i.imgur.com/ybmWhVM.png)
+![](http://i.imgur.com/JEoTBUW.png)
 
 ## Environment
 

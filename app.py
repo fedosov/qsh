@@ -25,9 +25,12 @@ class ScreenViewWindow(QDialog):
 		self.connector = None
 
 		self.setWindowTitle(u"Screen view" % APP_UUID)
-		self.resize(640, 120)
+		self.resize(160, 120)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+		self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 		self.initTrayIcon()
+
+		self.screen_geometry = app.desktop().screenGeometry()
 
 		# Net init
 		self.connector = Connector()
@@ -51,9 +54,11 @@ class ScreenViewWindow(QDialog):
 		screen_preview.setFixedHeight(120)
 		screen = QtGui.QPixmap()
 		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
+		screen_preview.original_pixmap = screen.copy()
 		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 		screen_preview.setPixmap(screen)
 
+		# add screen label (sender, date)
 		screen_preview_box.layout().addWidget(screen_preview)
 		screen_preview_label_text = "Unknown user"
 		screen_preview_label = QLabel()
@@ -64,28 +69,50 @@ class ScreenViewWindow(QDialog):
 		screen_preview_label.setFont(QFont("Tahoma", 10))
 		screen_preview_box.layout().addWidget(screen_preview_label)
 
+		# show button (TODO: show on screen click)
 		screen_preview_show = QPushButton("Show")
-		screen_preview_show.screen_preview_label = screen_preview_label
+		screen_preview_show.screen_preview = screen_preview
 		screen_preview_show.clicked.connect(self.screenPreviewShowClicked)
 		screen_preview_box.layout().addWidget(screen_preview_show)
 
+		# remove button
 		screen_preview_remove = QPushButton("Remove")
 		screen_preview_remove.screen_preview_box = screen_preview_box
 		screen_preview_remove.clicked.connect(self.screenPreviewRemoveClicked)
 		screen_preview_box.layout().addWidget(screen_preview_remove)
 
 		self.layout().addWidget(screen_preview_box)
-		#
+
+		app.processEvents()
+
+		self.move(self.screen_geometry.width() / 2 - self.width() / 2, self.screen_geometry.height() / 2 - self.height() / 2)
 		self.show()
 		self.raise_()
 		self.activateWindow()
 
 	def screenPreviewShowClicked(self):
-		screen_preview_label = self.sender().screen_preview_label
-		assert isinstance(screen_preview_label, QLabel)
-		screen_preview_label.showFullScreen()
+		""" Screen 'show' button click
+		"""
+		screen_preview = self.sender().screen_preview
+		assert isinstance(screen_preview, QLabel)
+		screen_preview.screen_preview_fs = QLabel()
+		# copy and resize original image
+		screen_preview.screen_preview_fs.setPixmap(
+			screen_preview.original_pixmap.copy().scaled(self.screen_geometry.width(),
+			                                             self.screen_geometry.height(),
+			                                             QtCore.Qt.KeepAspectRatio,
+			                                             QtCore.Qt.SmoothTransformation)
+		)
+		# show fullscreen
+		screen_preview.screen_preview_fs.showFullScreen()
+		screen_preview.screen_preview_fs.raise_()
+		screen_preview.screen_preview_fs.activateWindow()
+		# close on doubleclick
+		screen_preview.screen_preview_fs.mouseDoubleClickEvent = lambda x: screen_preview.screen_preview_fs.deleteLater()
 
 	def screenPreviewRemoveClicked(self):
+		""" Screen 'remove' button click
+		"""
 		screen_preview_box = self.sender().screen_preview_box
 		assert isinstance(screen_preview_box, QFrame)
 		screen_preview_box.deleteLater()
