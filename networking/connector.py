@@ -20,7 +20,7 @@ class Connector():
 		self.known_hosts_updated_callback = None
 		self.got_image_callback = None
 
-		self.max_socket_read_iterations = 20
+		self.max_socket_read_iterations = 500
 
 		# UDP
 		self.socket_udp = QtNetwork.QUdpSocket()
