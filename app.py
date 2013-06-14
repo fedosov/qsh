@@ -48,6 +48,10 @@ class ScreenViewWindow(QDialog):
 	def showReceivedImage(self, data_uuid, data):
 		""" Show received screenshot
 		"""
+		if not (data_uuid and data.size()):
+			# empty sender UUID or empty data (image)
+			return
+
 		screen_preview_box = QFrame()
 		screen_preview_box.setLayout(QVBoxLayout())
 		screen_preview = QLabel()

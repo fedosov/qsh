@@ -36,62 +36,16 @@ class Connector():
 	# TCP
 
 	def tcpIncomingConnection(self, socket_descriptor):
-		logger.debug("<-- TCP connection")
-		socket = QtNetwork.QTcpSocket()
-		socket.setSocketDescriptor(socket_descriptor)
-
-		socket.waitForReadyRead(1000)
-
-		data_stream = QtCore.QDataStream(socket)
-		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
-		data_size = data_stream.readUInt32()
-		data_uuid = data_stream.readString()
-		data_stream.unsetDevice()
-
-		logger.debug("<-- TCP incoming data size: %i bytes" % data_size)
-
-		data = QtCore.QByteArray()
-
-		read_iterations = 0
-
-		while data.size() < data_size and read_iterations < self.max_socket_read_iterations:
-			data_read = socket.readAll()
-			logger.debug("<-- READ %i bytes" % data_read.size())
-			data.append(data_read)
-			read_iterations += 1
-			socket.waitForReadyRead(100)
-
-		logger.debug("<-- TCP read %i bytes" % data.size())
-		if data.size() > 0 and self.got_image_callback:
-			self.got_image_callback(data_uuid, data)
+		self.receive_thread = ReceiveThread(socket_descriptor, self.max_socket_read_iterations)
+		self.receive_thread.start()
+		if self.got_image_callback:
+			self.receive_thread.complete.connect(self.got_image_callback)
 
 	def submitScreen(self, host, port, data):
-		socket = QtNetwork.QTcpSocket()
-
-		socket.connectToHost(host, port)
-		if not socket.waitForConnected(500):
-			# retry connection
-			socket.connectToHost(host, port)
-			if not socket.waitForConnected(500):
-				logger.info("--> TCP connection timeout")
-				return
-
-		data_stream = QtCore.QDataStream(socket)
-		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
-		data_stream.writeUInt32(data.size())
-		data_stream.writeString(unicode(APP_UUID))
-		data_stream.unsetDevice()
-
-		socket.write(data.data())
-		socket.flush()
-
-		while socket.bytesToWrite() > 0:
-			socket.waitForBytesWritten(100)
-
-		logger.debug("--> TCP written %i bytes" % data.size())
-
-		socket.disconnectFromHost()
-		logger.debug("--> TCP disconnected")
+		self.submit_thread = SubmitThread(host, port, data)
+		self.submit_thread.start()
+		# TODO: display progress
+		# self.submit_thread.complete.connect(self.submitScreenDone)
 
 	# UDP
 
@@ -147,3 +101,88 @@ class Connector():
 		"""
 		self.socket_udp.writeDatagram("%s|%s|%s" % (APP_BYE_MSG, APP_UUID, APP_PORT), QtNetwork.QHostAddress(QtNetwork.QHostAddress.Broadcast), APP_BROADCAST_PORT)
 		logger.debug("bye_all")
+
+
+class SubmitThread(QtCore.QThread):
+
+	""" Submitting screenshot
+	"""
+	complete = QtCore.Signal()
+
+	def __init__(self, host, port, data):
+		QtCore.QThread.__init__(self)
+		self.host = host
+		self.port = port
+		self.data = data
+
+	def run(self):
+		socket = QtNetwork.QTcpSocket()
+
+		socket.connectToHost(self.host, self.port)
+		if not socket.waitForConnected(500):
+			# retry connection
+			socket.connectToHost(self.host, self.port)
+			if not socket.waitForConnected(500):
+				logger.info("--> TCP connection timeout")
+				return
+
+		data_stream = QtCore.QDataStream(socket)
+		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
+		data_stream.writeUInt32(self.data.size())
+		data_stream.writeString(unicode(APP_UUID))
+		data_stream.unsetDevice()
+
+		socket.write(self.data.data())
+		socket.flush()
+
+		while socket.bytesToWrite() > 0:
+			socket.waitForBytesWritten(100)
+
+		logger.debug("--> TCP written %i bytes" % self.data.size())
+
+		socket.disconnectFromHost()
+		logger.debug("--> TCP disconnected")
+		self.complete.emit()
+
+
+class ReceiveThread(QtCore.QThread):
+
+	""" Receiving screenshot
+	"""
+	complete = QtCore.Signal(str, QtCore.QByteArray)
+
+	def __init__(self, socket_descriptor, max_socket_read_iterations=100):
+		QtCore.QThread.__init__(self)
+		self.socket_descriptor = socket_descriptor
+		self.max_socket_read_iterations = max_socket_read_iterations
+
+	def run(self):
+		logger.debug("<-- TCP connection")
+		socket = QtNetwork.QTcpSocket()
+		socket.setSocketDescriptor(self.socket_descriptor)
+
+		socket.waitForReadyRead(1000)
+
+		data_stream = QtCore.QDataStream(socket)
+		data_stream.setVersion(QtCore.QDataStream.Qt_4_8)
+		data_size = data_stream.readUInt32()
+		data_uuid = data_stream.readString()
+		data_stream.unsetDevice()
+
+		logger.debug("<-- TCP incoming data size: %i bytes" % data_size)
+
+		data = QtCore.QByteArray()
+
+		read_iterations = 0
+
+		while data.size() < data_size and read_iterations < self.max_socket_read_iterations:
+			data_read = socket.readAll()
+			logger.debug("<-- READ %i bytes" % data_read.size())
+			data.append(data_read)
+			read_iterations += 1
+			socket.waitForReadyRead(100)
+
+		logger.debug("<-- TCP read %i bytes" % data.size())
+		self.complete.emit(data_uuid, data)
+
+
