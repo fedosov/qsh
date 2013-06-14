@@ -10,11 +10,21 @@ Little app for a quick demonstration screen to your colleagues.
 
 ![](http://i.imgur.com/JEoTBUW.png)
 
-## Environment
+## Setup
+
+### Environment
 
 ```
 $ brew install qt pyside
 $ cp -r /usr/local/lib/python2.7/site-packages/PySide env/lib/python2.7/site-packages/
+```
+
+### Slow connection test
+
+```
+$ sudo ipfw add pipe 1 all from any to any && sudo ipfw pipe 1 config bw 512Kbit/s delay 50ms
+...
+$ sudo ipfw flush
 ```
 
 ## OS X Build
