@@ -69,10 +69,10 @@ class Connector():
 		socket = QtNetwork.QTcpSocket()
 
 		socket.connectToHost(host, port)
-		if not socket.waitForConnected(100):
+		if not socket.waitForConnected(500):
 			# retry connection
 			socket.connectToHost(host, port)
-			if not socket.waitForConnected(100):
+			if not socket.waitForConnected(500):
 				logger.info("--> TCP connection timeout")
 				return
 
