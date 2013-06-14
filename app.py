@@ -33,10 +33,11 @@ class ScreenViewWindow(QDialog):
 
 		self.connector = None
 
-		self.setWindowTitle(u"Screen view" % APP_UUID)
+		self.setWindowTitle(u"QSH" % APP_UUID)
 		self.resize(160, 120)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
-		self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+		#self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+
 		self.initTrayIcon()
 
 		self.screen_geometry = app.desktop().screenGeometry()
@@ -48,6 +49,8 @@ class ScreenViewWindow(QDialog):
 		self.connector.got_image_callback = self.showReceivedImage
 
 		layout = QHBoxLayout()
+		layout.setContentsMargins(0, 0, 0, 0)
+		layout.setSpacing(0)
 		self.setLayout(layout)
 
 	def closeEvent(self, event):
@@ -105,11 +108,18 @@ class ScreenViewWindow(QDialog):
 		self.layout().addWidget(screen_preview_box)
 
 		app.processEvents()
+		QtCore.QTimer.singleShot(0, self.showWindow)
 
-		self.move(self.screen_geometry.width() / 2 - self.width() / 2, self.screen_geometry.height() / 2 - self.height() / 2)
+	def showWindow(self):
 		self.show()
 		self.raise_()
 		self.activateWindow()
+		QtCore.QTimer.singleShot(0, self.updateWindowPositionAndSize)
+
+	def updateWindowPositionAndSize(self):
+		self.resize(self.minimumSizeHint())
+		self.move(self.screen_geometry.width() / 2 - self.width() / 2,
+		          self.screen_geometry.height() - 400)
 
 	def screenPreviewShowClicked(self):
 		""" Screen 'show' button click
@@ -137,6 +147,7 @@ class ScreenViewWindow(QDialog):
 		screen_preview_box = self.sender().screen_preview_box
 		assert isinstance(screen_preview_box, QFrame)
 		screen_preview_box.deleteLater()
+		QtCore.QTimer.singleShot(0, self.showWindow)
 
 	def updateScreenshot(self):
 		""" Capture screenshot
@@ -237,5 +248,5 @@ class ConfigDialog(QDialog):
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	windowScreenView = ScreenViewWindow()
-	windowScreenView.show()
+	#windowScreenView.show()
 	sys.exit(app.exec_())
