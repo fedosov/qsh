@@ -6,6 +6,8 @@ import sys
 import logging
 import datetime
 
+import gntp.notifier
+
 # PySide
 from PySide.QtGui import *
 from PySide import QtGui, QtCore
@@ -15,6 +17,13 @@ from networking.connector import Connector
 from config import AppConfig, APP_UUID, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
 
 logger = logging.getLogger(__name__)
+
+growl = gntp.notifier.GrowlNotifier(
+	applicationName="QSH",
+	notifications=["Incoming screenshots"],
+	defaultNotifications=["Incoming screenshots"],
+)
+growl.register()
 
 
 class ScreenViewWindow(QDialog):
@@ -72,6 +81,14 @@ class ScreenViewWindow(QDialog):
 		screen_preview_label.setText(screen_preview_label_text)
 		screen_preview_label.setFont(QFont("Tahoma", 10))
 		screen_preview_box.layout().addWidget(screen_preview_label)
+
+		growl.notify(
+			noteType="Incoming screenshots",
+			title="QSH: Screenshot received",
+			description=screen_preview_label_text,
+			sticky=False,
+			priority=1,
+		)
 
 		# show button (TODO: show on screen click)
 		screen_preview_show = QPushButton("Show")
