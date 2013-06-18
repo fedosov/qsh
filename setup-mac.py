@@ -12,7 +12,8 @@ setup(
 			"includes": ["PySide"],
 		    "plist":
 			{
-				"CFBundleIdentifier": "org.qsh"
+				"CFBundleIdentifier": "org.qsh",
+			    "LSUIElement": True
 		    }
 		}
 	},
