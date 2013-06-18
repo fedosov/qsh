@@ -14,9 +14,10 @@ from config import APP_UUID, SCREEN_IMAGE_TYPE
 
 class ScreenViewDialog(QDialog):
 
-	def __init__(self, parent=None):
+	def __init__(self, application, parent=None):
 		super(ScreenViewDialog, self).__init__(parent)
 
+		self.application = application
 		self.setWindowTitle(u"QSH" % APP_UUID)
 		self.resize(160, 120)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
@@ -29,7 +30,7 @@ class ScreenViewDialog(QDialog):
 		layout.setSpacing(0)
 		self.setLayout(layout)
 
-	def showReceivedImage(self, data_uuid, data, known_hosts):
+	def processReceivedImage(self, data_uuid, data, known_hosts):
 		""" Show received screenshot
 		"""
 		screen_preview_box = QFrame()
@@ -75,7 +76,7 @@ class ScreenViewDialog(QDialog):
 
 		self.layout().addWidget(screen_preview_box)
 
-		QtCore.QTimer.singleShot(0, self.showWindow)
+		# QtCore.QTimer.singleShot(0, self.showWindow)
 
 	def showWindow(self):
 		self.show()
@@ -114,7 +115,12 @@ class ScreenViewDialog(QDialog):
 		screen_preview_box = self.sender().screen_preview_box
 		assert isinstance(screen_preview_box, QFrame)
 		screen_preview_box.deleteLater()
-		QtCore.QTimer.singleShot(0, self.showWindow)
+		self.application.incomingTotal -= 1
+		self.application.updateTrayIconMenu()
+		if self.application.incomingTotal == 0:
+			self.close()
+		else:
+			QtCore.QTimer.singleShot(0, self.showWindow)
 
 
 

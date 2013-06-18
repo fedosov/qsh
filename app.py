@@ -23,31 +23,41 @@ class QSH(QApplication):
 		super(QSH, self).__init__(*args, **kwargs)
 		self.setQuitOnLastWindowClosed(False)
 
+		# state
+		self.incomingTotal = 0
+		self.incomingUnread = 0
+
 		# signals
 		self.aboutToQuit.connect(self.beforeQuit)
 
 		# dialogs
-		self.screenViewDialog = ScreenViewDialog()
+		self.screenViewDialog = ScreenViewDialog(self)
 
 		# networking
 		self.connector = Connector()
 		self.connector.helloAll()
 		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
-		self.connector.got_image_callback = self.showReceivedImage
+		self.connector.got_image_callback = self.processReceivedImage
 
 		# tray
 		self.initTrayIcon()
 		self.updateTrayIconMenu()
 
-	def showReceivedImage(self, data_uuid, data):
+	def processReceivedImage(self, data_uuid, data):
 		""" Show received screenshot
 		"""
 		if not (data_uuid and data.size()):
 			# empty sender UUID or empty data (image)
 			return
-		self.screenViewDialog.showReceivedImage(data_uuid=data_uuid,
-		                                        data=data,
-		                                        known_hosts=self.connector.known_hosts)
+		self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
+		                                           data=data,
+		                                           known_hosts=self.connector.known_hosts)
+		self.incomingTotal += 1
+		if self.screenViewDialog.isVisible():
+			self.screenViewDialog.showWindow()
+		else:
+			self.incomingUnread += 1
+		self.updateTrayIconMenu()
 
 	def initTrayIcon(self):
 		""" Tray icon initialisation
@@ -56,7 +66,8 @@ class QSH(QApplication):
 		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
 
 		self.actionQuit = QAction(u"Quit", self, triggered=self.quit)
-		self.actionConfig = QAction(u"Configuration", self, triggered=self.showConfigurationDialog)
+		self.actionShowConfigurationDialog = QAction(u"Configuration", self, triggered=self.showConfigurationDialog)
+		self.actionShowScreenViewDialog = QAction(self, triggered=self.showScreenViewDialog)
 
 		self.trayIconMenu = QMenu()
 		self.updateTrayIconMenu()
@@ -80,6 +91,7 @@ class QSH(QApplication):
 		self.trayIconMenu.addAction(trayIconMenuUUIDAction)
 		self.trayIconMenu.addSeparator()
 
+		# known hosts list
 		if self.connector and self.connector.known_hosts:
 			for host_uuid, host_data in self.connector.known_hosts.iteritems():
 				if host_data["username"]:
@@ -88,7 +100,14 @@ class QSH(QApplication):
 					host_str = "[%s:%s]" % (host_data["host"].toString(), host_data["port"])
 				self.trayIconMenu.addAction(QAction(host_str, self, triggered=lambda: self.shareScreen(host_data["host"], host_data["port"])))
 			self.trayIconMenu.addSeparator()
-		self.trayIconMenu.addAction(self.actionConfig)
+
+		# incoming data
+		self.actionShowScreenViewDialog.setDisabled(self.incomingTotal == 0)
+		self.actionShowScreenViewDialog.setText("(%i) Incoming" % self.incomingUnread if self.incomingUnread else "Incoming")
+		self.trayIconMenu.addAction(self.actionShowScreenViewDialog)
+		self.trayIconMenu.addSeparator()
+
+		self.trayIconMenu.addAction(self.actionShowConfigurationDialog)
 		self.trayIconMenu.addAction(self.actionQuit)
 
 	def updateScreenshot(self):
@@ -111,6 +130,11 @@ class QSH(QApplication):
 		self.config_dialog.showNormal()
 		self.config_dialog.activateWindow()
 		self.config_dialog.raise_()
+
+	def showScreenViewDialog(self):
+		self.incomingUnread = 0
+		self.updateTrayIconMenu()
+		self.screenViewDialog.showWindow()
 
 	def beforeQuit(self):
 		self.connector.byeAll()
