@@ -8,7 +8,6 @@ from PySide.QtGui import *
 from PySide import QtGui, QtCore
 
 # QSH
-from growl import growl
 from config import APP_UUID, SCREEN_IMAGE_TYPE
 
 
@@ -54,13 +53,13 @@ class ScreenViewDialog(QDialog):
 		screen_preview_label.setFont(QFont("Tahoma", 10))
 		screen_preview_box.layout().addWidget(screen_preview_label)
 
-		growl.notify(
-			noteType="Incoming screenshots",
-			title="QSH: Screenshot received",
-			description=screen_preview_label_text,
-			sticky=False,
-			priority=1,
-		)
+		# growl.notify(
+		# 	noteType="Incoming screenshots",
+		# 	title="QSH: Screenshot received",
+		# 	description=screen_preview_label_text,
+		# 	sticky=False,
+		# 	priority=1,
+		# )
 
 		# show button (TODO: show on screen click)
 		screen_preview_show = QPushButton("Show")
