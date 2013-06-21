@@ -19,6 +19,8 @@ class Connector():
 		self.known_hosts = dict()
 		self.known_hosts_updated_callback = None
 		self.got_image_callback = None
+		self.receiving_start_callback = None
+		self.sending_end_callback = None
 
 		self.max_socket_read_iterations = 500
 
@@ -36,6 +38,8 @@ class Connector():
 	# TCP
 
 	def tcpIncomingConnection(self, socket_descriptor):
+		if self.receiving_start_callback:
+			self.receiving_start_callback()
 		self.receive_thread = ReceiveThread(socket_descriptor, self.max_socket_read_iterations)
 		self.receive_thread.start()
 		if self.got_image_callback:
@@ -44,8 +48,8 @@ class Connector():
 	def submitScreen(self, host, port, data):
 		self.submit_thread = SubmitThread(host, port, data)
 		self.submit_thread.start()
-		# TODO: display progress
-		# self.submit_thread.complete.connect(self.submitScreenDone)
+		if self.sending_end_callback:
+			self.submit_thread.complete.connect(self.sending_end_callback)
 
 	# UDP
 

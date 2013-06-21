@@ -38,6 +38,8 @@ class QSH(QApplication):
 		self.connector.helloAll()
 		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
 		self.connector.got_image_callback = self.processReceivedImage
+		self.connector.receiving_start_callback = self.trayIconSetIconLoading
+		self.connector.sending_end_callback = self.trayIconSetIconDefault
 
 		# tray
 		self.initTrayIcon()
@@ -58,12 +60,22 @@ class QSH(QApplication):
 		else:
 			self.incomingUnread += 1
 		self.updateTrayIconMenu()
+		if self.incomingUnread > 0:
+			self.trayIconSetIconUnread()
+		else:
+			self.trayIconSetIconDefault()
 
 	def initTrayIcon(self):
 		""" Tray icon initialisation
 		"""
 		self.trayIconIcon = QIcon("resources/img/menu_bar_extras_icon.png")
 		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
+
+		self.trayIconLoading = QIcon("resources/img/menu_bar_extras_icon__loading.png")
+		self.trayIconLoading.addPixmap("resources/img/menu_bar_extras_icon__loading_alt.png", QIcon.Selected)
+
+		self.trayIconUnread = QIcon("resources/img/menu_bar_extras_icon__unread.png")
+		self.trayIconUnread.addPixmap("resources/img/menu_bar_extras_icon__unread_alt.png", QIcon.Selected)
 
 		self.actionQuit = QAction(u"Quit", self, triggered=self.quit)
 		self.actionShowConfigurationDialog = QAction(u"Configuration", self, triggered=self.showConfigurationDialog)
@@ -73,9 +85,21 @@ class QSH(QApplication):
 		self.updateTrayIconMenu()
 
 		self.trayIcon = QSystemTrayIcon(self)
-		self.trayIcon.setIcon(self.trayIconIcon)
+		self.trayIconSetIconDefault()
 		self.trayIcon.setContextMenu(self.trayIconMenu)
 		self.trayIcon.show()
+
+	def trayIconSetIconDefault(self):
+		if self.incomingUnread > 0:
+			self.trayIconSetIconUnread()
+		else:
+			self.trayIcon.setIcon(self.trayIconIcon)
+
+	def trayIconSetIconLoading(self):
+		self.trayIcon.setIcon(self.trayIconLoading)
+
+	def trayIconSetIconUnread(self):
+		self.trayIcon.setIcon(self.trayIconUnread)
 
 	def updateTrayIconMenu(self):
 		self.trayIconMenu.clear()
@@ -118,6 +142,7 @@ class QSH(QApplication):
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height())
 
 	def shareScreen(self, host, port):
+		self.trayIconSetIconLoading()
 		self.updateScreenshot()
 		screenBA = QtCore.QByteArray()
 		screenBuf = QtCore.QBuffer(screenBA)
@@ -134,6 +159,7 @@ class QSH(QApplication):
 	def showScreenViewDialog(self):
 		self.incomingUnread = 0
 		self.updateTrayIconMenu()
+		self.trayIconSetIconDefault()
 		self.screenViewDialog.showWindow()
 
 	def beforeQuit(self):
