@@ -1,3 +1,2 @@
 PySide
-gntp
 py2app

@@ -4,6 +4,7 @@ from setuptools import setup
 
 setup(
 	app=["app.py"],
+    name="qsh",
 	options=\
 	{
 		"py2app":
@@ -13,6 +14,7 @@ setup(
 		    "plist":
 			{
 				"CFBundleIdentifier": "org.qsh",
+			    "CFBundleShortVersionString": "0.1.0",
 			    "LSUIElement": True
 		    }
 		}

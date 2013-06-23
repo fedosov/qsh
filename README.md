@@ -16,6 +16,10 @@ You can:
 
 ![](http://i.imgur.com/cwK5Rtu.png)
 
+## Download
+
+### [QSH for OS X](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.app.tgz)
+
 ## Setup
 
 ### Environment
@@ -37,7 +41,7 @@ $ sudo ipfw flush
 
 ```
 $ pip install py2app
-$ python setup-mac.py py2app
+$ make
 ```
 
 ## Authors
