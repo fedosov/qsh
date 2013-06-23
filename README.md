@@ -1,14 +1,20 @@
-# QSH
+# Quick Screen Share (QSH)
+
+### Screen sharing over the network in a single click.
 
 > "Hey, quick, come here, look at what's on my screen!" — never again.
 
-![](http://i.imgur.com/sQbcmTO.png)
+![](http://i.imgur.com/HR6okiQ.png)
 
-Little app for a quick demonstration screen to your colleagues.
+You can:
+
+* show buggy HTML page to your teammate;
+* blazingly fast send on screen photos;
+* ask what is going on in a certain code, giving context at the speed of light.
 
 ## Screenshots
 
-![](http://i.imgur.com/JEoTBUW.png)
+![](http://i.imgur.com/cwK5Rtu.png)
 
 ## Setup
 
