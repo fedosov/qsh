@@ -45,7 +45,7 @@ class QSH(QApplication):
 		self.initTrayIcon()
 		self.updateTrayIconMenu()
 
-	def processReceivedImage(self, data_uuid, data):
+	def processReceivedImage(self, data_uuid=None, data=None):
 		""" Show received screenshot
 		"""
 		if not (data_uuid and data.size()):

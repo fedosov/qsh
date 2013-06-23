@@ -128,6 +128,7 @@ class SubmitThread(QtCore.QThread):
 			socket.connectToHost(self.host, self.port)
 			if not socket.waitForConnected(500):
 				logger.info("--> TCP connection timeout")
+				self.complete.emit()
 				return
 
 		data_stream = QtCore.QDataStream(socket)
