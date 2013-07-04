@@ -49,7 +49,7 @@ class QSH(QApplication):
 
 		self.helloAllTimer = QtCore.QTimer(self)
 		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.helloAll)
-		self.helloAllTimer.start(5000)
+		self.helloAllTimer.start(AppConfig.get_heartbeat_interval())
 
 	def processReceivedImage(self, data_uuid=None, data=None):
 		""" Show received screenshot

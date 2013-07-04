@@ -32,6 +32,21 @@ class AppConfig:
 		d["app.username"] = value
 		d.close()
 
+	@classmethod
+	def get_heartbeat_interval(cls):
+		d = shelve.open(args.config)
+		# default: 5000
+		# minimum: 1000
+		heartbeat_interval = max(1000, int(d.get("app.heartbeat_interval", 5000)))
+		d.close()
+		return heartbeat_interval
+
+	@classmethod
+	def set_heartbeat_interval(cls, value):
+		d = shelve.open(args.config)
+		d["app.heartbeat_interval"] = str(value)
+		d.close()
+
 
 parser = argparse.ArgumentParser(description="QSH")
 parser.add_argument("--tcp-port", dest="tcp_port", default=7740, type=int, help="TCP port")

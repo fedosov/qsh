@@ -23,6 +23,10 @@ class ConfigurationDialog(QDialog):
 		self.editUsername = QtGui.QLineEdit(AppConfig.get_username())
 		layout.addWidget(self.editUsername)
 
+		layout.addWidget(QtGui.QLabel("Heartbeat interval (ms):"))
+		self.editHeartbeatInterval = QtGui.QLineEdit(str(AppConfig.get_heartbeat_interval()))
+		layout.addWidget(self.editHeartbeatInterval)
+
 		buttonBox = QtGui.QDialogButtonBox()
 		self.btnCancel = QPushButton(u"Cancel")
 		self.btnCancel.clicked.connect(self.close)
@@ -36,6 +40,12 @@ class ConfigurationDialog(QDialog):
 
 	def save(self):
 		AppConfig.set_username(self.editUsername.text())
+		try:
+			AppConfig.set_heartbeat_interval(int(self.editHeartbeatInterval.text()))
+		except ValueError:
+			pass
 		self.application.updateTrayIconMenu()
+		self.application.helloAllTimer.stop()
+		self.application.helloAllTimer.start(AppConfig.get_heartbeat_interval())
 		self.application.connector.helloAll()
 		self.close()
