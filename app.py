@@ -35,7 +35,6 @@ class QSH(QApplication):
 
 		# networking
 		self.connector = Connector()
-		self.connector.helloAll()
 		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
 		self.connector.got_image_callback = self.processReceivedImage
 		self.connector.receiving_start_callback = self.trayIconSetIconLoading
@@ -44,6 +43,13 @@ class QSH(QApplication):
 		# tray
 		self.initTrayIcon()
 		self.updateTrayIconMenu()
+
+		# hi there!
+		self.helloAll()
+
+		self.helloAllTimer = QtCore.QTimer(self)
+		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.helloAll)
+		self.helloAllTimer.start(5000)
 
 	def processReceivedImage(self, data_uuid=None, data=None):
 		""" Show received screenshot
@@ -142,6 +148,8 @@ class QSH(QApplication):
 		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height())
 
 	def shareScreen(self, host, port):
+		""" Send screenshot
+		"""
 		self.trayIconSetIconLoading()
 		self.updateScreenshot()
 		screenBA = QtCore.QByteArray()
@@ -161,6 +169,12 @@ class QSH(QApplication):
 		self.updateTrayIconMenu()
 		self.trayIconSetIconDefault()
 		self.screenViewDialog.showWindow()
+
+	def helloAll(self):
+		""" Anybody here?
+		"""
+		self.connector.clearKnownHosts()
+		self.connector.helloAll()
 
 	def beforeQuit(self):
 		self.connector.byeAll()

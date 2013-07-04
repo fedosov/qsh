@@ -16,11 +16,11 @@ class Connector():
 	""" Processing network messages
 	"""
 	def __init__(self):
-		self.known_hosts = dict()
-		self.known_hosts_updated_callback = None
-		self.got_image_callback = None
-		self.receiving_start_callback = None
-		self.sending_end_callback = None
+		self.known_hosts_updated_callback = lambda: None
+		self.got_image_callback = lambda: None
+		self.receiving_start_callback = lambda: None
+		self.sending_end_callback = lambda: None
+		self.clearKnownHosts()
 
 		self.max_socket_read_iterations = 500
 
@@ -35,11 +35,14 @@ class Connector():
 		self.socket_tcp.incomingConnection = self.tcpIncomingConnection
 		self.socket_tcp.listen(address=QtNetwork.QHostAddress("0.0.0.0"), port=APP_PORT)
 
+	def clearKnownHosts(self):
+		self.known_hosts = dict()
+		self.known_hosts_updated_callback()
+
 	# TCP
 
 	def tcpIncomingConnection(self, socket_descriptor):
-		if self.receiving_start_callback:
-			self.receiving_start_callback()
+		self.receiving_start_callback()
 		self.receive_thread = ReceiveThread(socket_descriptor, self.max_socket_read_iterations)
 		self.receive_thread.start()
 		if self.got_image_callback:
@@ -78,8 +81,7 @@ class Connector():
 						    'port': int(port),
 						    'username': base64.decodestring(username)
 						}
-						if self.known_hosts_updated_callback:
-							self.known_hosts_updated_callback()
+						self.known_hosts_updated_callback()
 						# and so, be friendly
 						if flag == 'reply':
 							self.helloAll(flag='silent')
@@ -90,8 +92,7 @@ class Connector():
 						port = data_fields[2]
 						logger.debug("got_goodbye_[%s][%s]" % (data_uuid, "%s:%s" % (sender.toString(), port)))
 						del self.known_hosts[data_uuid]
-						if self.known_hosts_updated_callback:
-							self.known_hosts_updated_callback()
+						self.known_hosts_updated_callback()
 
 	def helloAll(self, flag='reply'):
 		""" Broadcast Hello to everyone in the network
