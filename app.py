@@ -76,8 +76,8 @@ class QSH(QApplication):
 		self.trayIconLoading = QIcon("resources/img/menu_bar_extras_icon__loading.png")
 		self.trayIconLoading.addPixmap("resources/img/menu_bar_extras_icon__loading_alt.png", QIcon.Selected)
 
-		self.trayIconUnread = QIcon("resources/img/menu_bar_extras_icon__unread.png")
-		self.trayIconUnread.addPixmap("resources/img/menu_bar_extras_icon__unread_alt.png", QIcon.Selected)
+		self.trayIconUnreadPixmap = QPixmap("resources/img/menu_bar_extras_icon__unread.png")
+		self.trayIconUnreadAltPixmap = QPixmap("resources/img/menu_bar_extras_icon__unread_alt.png")
 
 		self.actionQuit = QAction(u"Quit", self, triggered=self.quit)
 		self.actionShowConfigurationDialog = QAction(u"Configuration", self, triggered=self.showConfigurationDialog)
@@ -101,7 +101,28 @@ class QSH(QApplication):
 		self.trayIcon.setIcon(self.trayIconLoading)
 
 	def trayIconSetIconUnread(self, count=1):
-		self.trayIcon.setIcon(self.trayIconUnread)
+		font = QFont("Tahoma", 8, QFont.Bold)
+		font.setStyleHint(QFont.SansSerif)
+		font.setStyleStrategy(QFont.PreferQuality)
+
+		new_icon_pixmap = self.trayIconUnreadPixmap.copy()
+		painter = QPainter(new_icon_pixmap)
+		painter.setFont(font)
+		painter.drawText(0, 3, 14, 16, QtCore.Qt.AlignRight, str(count))
+		painter.end()
+
+		new_icon = QIcon(new_icon_pixmap)
+
+		new_icon_alt_pixmap = self.trayIconUnreadAltPixmap.copy()
+		painter = QPainter(new_icon_alt_pixmap)
+		painter.setFont(font)
+		painter.setPen(QPen(QColor(255, 255, 255)))
+		painter.drawText(0, 3, 15, 16, QtCore.Qt.AlignRight, str(count))
+		painter.end()
+
+		new_icon.addPixmap(new_icon_alt_pixmap, QIcon.Selected)
+
+		self.trayIcon.setIcon(new_icon)
 
 	def updateTrayIconMenu(self):
 		self.trayIconMenu.clear()
