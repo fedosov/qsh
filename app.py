@@ -54,25 +54,18 @@ class QSH(QApplication):
 	def processReceivedImage(self, data_uuid=None, data=None):
 		""" Show received screenshot
 		"""
-		if not (data_uuid and data.size()):
-			# empty sender UUID or empty data (image)
-			self.trayIconSetIconDefault()
-			return
+		if data_uuid and data.size():
+			receivedImagesCount = self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
+			                                                                 data=data,
+			                                                                 known_hosts=self.connector.known_hosts)
+			self.incomingTotal += receivedImagesCount
+			if self.screenViewDialog.isVisible():
+				self.screenViewDialog.showWindow()
+			else:
+				self.incomingUnread += receivedImagesCount
+			self.updateTrayIconMenu()
 
-		receivedImagesCount = self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
-		                                                                 data=data,
-		                                                                 known_hosts=self.connector.known_hosts)
-		self.incomingTotal += receivedImagesCount
-		if self.screenViewDialog.isVisible():
-			self.screenViewDialog.showWindow()
-		else:
-			self.incomingUnread += receivedImagesCount
-		self.updateTrayIconMenu()
-
-		if self.incomingUnread > 0:
-			self.trayIconSetIconUnread()
-		else:
-			self.trayIconSetIconDefault()
+		self.trayIconSetIconDefault()
 
 	def initTrayIcon(self):
 		""" Tray icon initialisation
@@ -100,14 +93,14 @@ class QSH(QApplication):
 
 	def trayIconSetIconDefault(self):
 		if self.incomingUnread > 0:
-			self.trayIconSetIconUnread()
+			self.trayIconSetIconUnread(self.incomingUnread)
 		else:
 			self.trayIcon.setIcon(self.trayIconIcon)
 
 	def trayIconSetIconLoading(self):
 		self.trayIcon.setIcon(self.trayIconLoading)
 
-	def trayIconSetIconUnread(self):
+	def trayIconSetIconUnread(self, count=1):
 		self.trayIcon.setIcon(self.trayIconUnread)
 
 	def updateTrayIconMenu(self):
