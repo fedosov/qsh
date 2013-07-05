@@ -42,6 +42,7 @@ class ScreenViewDialog(QDialog):
 		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 		screen_preview.setPixmap(screen)
 		screen_preview.installEventFilter(ScreenClickEventFilter(self))
+		screen_preview.setCursor(QtCore.Qt.PointingHandCursor)
 
 		# add screen label (sender, date)
 		screen_preview_box.layout().addWidget(screen_preview)
@@ -101,8 +102,6 @@ class ScreenViewDialog(QDialog):
 		screen_preview.screen_preview_fs.showFullScreen()
 		screen_preview.screen_preview_fs.raise_()
 		screen_preview.screen_preview_fs.activateWindow()
-		# close on doubleclick
-		screen_preview.screen_preview_fs.mouseDoubleClickEvent = lambda x: screen_preview.screen_preview_fs.deleteLater()
 
 	def screenPreviewRemoveClicked(self):
 		""" Screen 'remove' button click
@@ -123,10 +122,14 @@ class ScreenClickEventFilter(QtCore.QObject):
 	def eventFilter(self, obj, event):
 		""" Screenshot preview clicked
 		"""
+		parent = self.parent()
+		assert isinstance(parent, ScreenViewDialog)
 		if event.type() == QtCore.QEvent.MouseButtonPress:
-			parent = self.parent()
-			assert isinstance(parent, ScreenViewDialog)
 			parent.screenPreviewShow(obj)
+			return True
+		if event.type() == QtCore.QEvent.MouseButtonRelease:
+			if obj.screen_preview_fs:
+				obj.screen_preview_fs.deleteLater()
 			return True
 		else:
 			return QtCore.QObject.eventFilter(self, obj, event)
