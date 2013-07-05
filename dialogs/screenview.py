@@ -123,13 +123,20 @@ class ScreenClickEventFilter(QtCore.QObject):
 		""" Screenshot preview clicked
 		"""
 		parent = self.parent()
-		assert isinstance(parent, ScreenViewDialog)
-		if event.type() == QtCore.QEvent.MouseButtonPress:
-			parent.screenPreviewShow(obj)
-			return True
-		if event.type() == QtCore.QEvent.MouseButtonRelease:
-			if obj.screen_preview_fs:
-				obj.screen_preview_fs.deleteLater()
-			return True
-		else:
+		try:
+			assert isinstance(parent, ScreenViewDialog)
+			if event.type() == QtCore.QEvent.MouseButtonPress:
+				parent.screenPreviewShow(obj)
+				return True
+			if event.type() == QtCore.QEvent.MouseButtonRelease:
+				if obj.screen_preview_fs:
+					try:
+						obj.screen_preview_fs.deleteLater()
+					except RuntimeError:
+						# screen preview already deleted
+						pass
+				return True
+			else:
+				return QtCore.QObject.eventFilter(self, obj, event)
+		except AssertionError:
 			return QtCore.QObject.eventFilter(self, obj, event)
