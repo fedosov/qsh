@@ -18,7 +18,7 @@ You can:
 
 ## Download
 
-### [QSH for OS X](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.app.tgz)
+### OS X: [qsh.dmg](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg)
 
 ## Setup
 
