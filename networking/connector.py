@@ -194,6 +194,11 @@ class ReceiveThread(QtCore.QThread):
 			socket.waitForReadyRead(100)
 
 		logger.debug("<-- TCP read %i bytes" % data.size())
+
+		if data.size() != data_size:
+			# broken data received
+			data.clear()
+
 		self.complete.emit(data_uuid, data)
 
 
