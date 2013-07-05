@@ -142,7 +142,12 @@ class SubmitThread(QtCore.QThread):
 		socket.flush()
 
 		while socket.bytesToWrite() > 0:
-			socket.waitForBytesWritten(100)
+			if socket.state() == socket.ConnectedState:
+				socket.waitForBytesWritten(100)
+			else:
+				logger.debug("--> TCP host suddenly disconnected")
+				self.complete.emit()
+				return
 
 		logger.debug("--> TCP written %i bytes" % self.data.size())
 
