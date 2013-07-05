@@ -18,7 +18,7 @@ You can:
 
 ## Download
 
-### OS X: [qsh.dmg](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg)
+[![](http://roto1.net/ponscripter/media/icon-dmg.png)](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg) [qsh.dmg](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg)
 
 ## Setup
 
