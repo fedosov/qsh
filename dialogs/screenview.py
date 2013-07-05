@@ -41,6 +41,7 @@ class ScreenViewDialog(QDialog):
 		screen_preview.original_pixmap = screen.copy()
 		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 		screen_preview.setPixmap(screen)
+		screen_preview.installEventFilter(ScreenClickEventFilter(self))
 
 		# add screen label (sender, date)
 		screen_preview_box.layout().addWidget(screen_preview)
@@ -60,12 +61,6 @@ class ScreenViewDialog(QDialog):
 		# 	sticky=False,
 		# 	priority=1,
 		# )
-
-		# show button (TODO: show on screen click)
-		screen_preview_show = QPushButton("Show")
-		screen_preview_show.screen_preview = screen_preview
-		screen_preview_show.clicked.connect(self.screenPreviewShowClicked)
-		screen_preview_box.layout().addWidget(screen_preview_show)
 
 		# remove button
 		screen_preview_remove = QPushButton("Remove")
@@ -88,18 +83,19 @@ class ScreenViewDialog(QDialog):
 		self.move(self.screenGeometry.width() / 2 - self.width() / 2,
 		          self.screenGeometry.height() - 400)
 
-	def screenPreviewShowClicked(self):
+	def screenPreviewShow(self, screen_preview):
 		""" Screen 'show' button click
 		"""
-		screen_preview = self.sender().screen_preview
 		assert isinstance(screen_preview, QLabel)
 		screen_preview.screen_preview_fs = QLabel()
 		# copy and resize original image
 		screen_preview.screen_preview_fs.setPixmap(
-			screen_preview.original_pixmap.copy().scaled(self.screenGeometry.width(),
-			                                             self.screenGeometry.height(),
-			                                             QtCore.Qt.KeepAspectRatio,
-			                                             QtCore.Qt.SmoothTransformation)
+			screen_preview.original_pixmap.copy().scaled(
+				self.screenGeometry.width(),
+				self.screenGeometry.height(),
+				QtCore.Qt.KeepAspectRatio,
+				QtCore.Qt.SmoothTransformation
+			)
 		)
 		# show fullscreen
 		screen_preview.screen_preview_fs.showFullScreen()
@@ -122,4 +118,15 @@ class ScreenViewDialog(QDialog):
 			QtCore.QTimer.singleShot(0, self.showWindow)
 
 
+class ScreenClickEventFilter(QtCore.QObject):
 
+	def eventFilter(self, obj, event):
+		""" Screenshot preview clicked
+		"""
+		if event.type() == QtCore.QEvent.MouseButtonPress:
+			parent = self.parent()
+			assert isinstance(parent, ScreenViewDialog)
+			parent.screenPreviewShow(obj)
+			return True
+		else:
+			return QtCore.QObject.eventFilter(self, obj, event)
