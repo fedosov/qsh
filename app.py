@@ -58,15 +58,17 @@ class QSH(QApplication):
 			# empty sender UUID or empty data (image)
 			self.trayIconSetIconDefault()
 			return
-		self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
-		                                           data=data,
-		                                           known_hosts=self.connector.known_hosts)
-		self.incomingTotal += 1
+
+		receivedImagesCount = self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
+		                                                                 data=data,
+		                                                                 known_hosts=self.connector.known_hosts)
+		self.incomingTotal += receivedImagesCount
 		if self.screenViewDialog.isVisible():
 			self.screenViewDialog.showWindow()
 		else:
-			self.incomingUnread += 1
+			self.incomingUnread += receivedImagesCount
 		self.updateTrayIconMenu()
+
 		if self.incomingUnread > 0:
 			self.trayIconSetIconUnread()
 		else:

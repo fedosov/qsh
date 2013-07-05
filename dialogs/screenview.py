@@ -32,12 +32,16 @@ class ScreenViewDialog(QDialog):
 	def processReceivedImage(self, data_uuid, data, known_hosts):
 		""" Show received screenshot
 		"""
+		screen = QtGui.QPixmap()
+		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
+		if screen.isNull():
+			# received broken image data
+			return 0
+
 		screen_preview_box = QFrame()
 		screen_preview_box.setLayout(QVBoxLayout())
 		screen_preview = QLabel()
 		screen_preview.setFixedHeight(120)
-		screen = QtGui.QPixmap()
-		screen.loadFromData(data, SCREEN_IMAGE_TYPE)
 		screen_preview.original_pixmap = screen.copy()
 		screen = screen.scaledToHeight(120, QtCore.Qt.SmoothTransformation)
 		screen_preview.setPixmap(screen)
@@ -71,7 +75,7 @@ class ScreenViewDialog(QDialog):
 
 		self.layout().addWidget(screen_preview_box)
 
-		# QtCore.QTimer.singleShot(0, self.showWindow)
+		return 1
 
 	def showWindow(self):
 		self.show()
