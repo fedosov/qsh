@@ -56,6 +56,7 @@ class QSH(QApplication):
 		"""
 		if not (data_uuid and data.size()):
 			# empty sender UUID or empty data (image)
+			self.trayIconSetIconDefault()
 			return
 		self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
 		                                           data=data,
