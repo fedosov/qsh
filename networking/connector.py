@@ -39,6 +39,15 @@ class Connector():
 		self.known_hosts = dict()
 		self.known_hosts_updated_callback()
 
+	def markKnownHostsAsDead(self):
+		for key in self.known_hosts.keys():
+			self.known_hosts[key]["alive"] = False
+
+	def deleteAllDeadKnownHosts(self):
+		for key in self.known_hosts.keys():
+			if not self.known_hosts[key]["alive"]:
+				del self.known_hosts[key]
+
 	# TCP
 
 	def tcpIncomingConnection(self, socket_descriptor):
@@ -79,7 +88,8 @@ class Connector():
 						{
 							'host': sender,
 						    'port': int(port),
-						    'username': base64.decodestring(username)
+						    'username': base64.decodestring(username),
+						    'alive': True
 						}
 						self.known_hosts_updated_callback()
 						# and so, be friendly

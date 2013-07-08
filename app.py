@@ -190,7 +190,8 @@ class QSH(QApplication):
 	def helloAll(self):
 		""" Anybody here?
 		"""
-		self.connector.clearKnownHosts()
+		self.connector.markKnownHostsAsDead()
+		QtCore.QTimer.singleShot(500, self.connector.deleteAllDeadKnownHosts)
 		self.connector.helloAll()
 
 	def beforeQuit(self):
