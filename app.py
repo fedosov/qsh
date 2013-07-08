@@ -33,13 +33,18 @@ class QSH(QApplication):
 		self.connector = Connector()
 
 		# tray
-		self.trayIcon = MainTrayIcon(self)
+		self.trayIcon = MainTrayIcon(self, callbacks=
+		{
+			"quit": self.quit,
+			"configuration": self.showConfigurationDialog,
+			"incoming": self.showScreenViewDialog
+		})
 
 		# networking callbacks
-		self.connector.known_hosts_updated_callback = self.trayIcon.updateTrayIconMenu
+		self.connector.known_hosts_updated_callback = self.trayIcon.updateMenu
 		self.connector.got_image_callback = self.processReceivedImage
-		self.connector.receiving_start_callback = self.trayIcon.trayIconSetIconLoading
-		self.connector.sending_end_callback = self.trayIcon.trayIconSetIconDefault
+		self.connector.receiving_start_callback = self.trayIcon.setIconLoading
+		self.connector.sending_end_callback = self.trayIcon.setIconDefault
 
 		# hi there!
 		self.connector.updateKnownHosts()
@@ -60,9 +65,9 @@ class QSH(QApplication):
 				self.screenViewDialog.showWindow()
 			else:
 				self.trayIcon.incomingUnread += receivedImagesCount
-			self.trayIcon.updateTrayIconMenu()
+			self.trayIcon.updateMenu()
 
-		self.trayIcon.trayIconSetIconDefault()
+		self.trayIcon.setIconDefault()
 
 	def updateScreenshot(self):
 		""" Capture screenshot
@@ -74,7 +79,7 @@ class QSH(QApplication):
 	def shareScreen(self, host, port):
 		""" Send screenshot
 		"""
-		self.trayIcon.trayIconSetIconLoading()
+		self.trayIcon.setIconLoading()
 		self.updateScreenshot()
 		screenBA = QtCore.QByteArray()
 		screenBuf = QtCore.QBuffer(screenBA)
@@ -90,8 +95,8 @@ class QSH(QApplication):
 
 	def showScreenViewDialog(self):
 		self.trayIcon.incomingUnread = 0
-		self.trayIcon.updateTrayIconMenu()
-		self.trayIcon.trayIconSetIconDefault()
+		self.trayIcon.updateMenu()
+		self.trayIcon.setIconDefault()
 		self.screenViewDialog.showWindow()
 
 	def beforeQuit(self):

@@ -44,7 +44,7 @@ class ConfigurationDialog(QDialog):
 			AppConfig.set_heartbeat_interval(int(self.editHeartbeatInterval.text()))
 		except ValueError:
 			pass
-		self.application.trayIcon.updateTrayIconMenu()
+		self.application.trayIcon.updateMenu()
 		self.application.helloAllTimer.stop()
 		self.application.helloAllTimer.start(AppConfig.get_heartbeat_interval())
 		self.application.connector.helloAll()

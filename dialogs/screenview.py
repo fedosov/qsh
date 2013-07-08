@@ -114,7 +114,7 @@ class ScreenViewDialog(QDialog):
 		assert isinstance(screen_preview_box, QFrame)
 		screen_preview_box.deleteLater()
 		self.application.incomingTotal -= 1
-		self.application.trayIcon.updateTrayIconMenu()
+		self.application.trayIcon.updateMenu()
 		if self.application.incomingTotal == 0:
 			self.close()
 		else:
