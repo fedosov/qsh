@@ -40,7 +40,17 @@ class MainTrayIcon(QtCore.QObject):
 		self.icon = QSystemTrayIcon(self.parent)
 		self.setIconDefault()
 		self.icon.setContextMenu(self.menu)
+		self.icon.activated.connect(self.activated)
 		self.icon.show()
+
+	def activated(self, reason):
+		self.icon.setContextMenu(self.menu)
+		if reason == QSystemTrayIcon.MiddleClick:
+			self.icon.setContextMenu(None)
+			# TODO: middle button clicked, do something useful
+		elif reason == QSystemTrayIcon.DoubleClick:
+			self.icon.setContextMenu(None)
+			# TODO: middle button clicked+doubleclicked, do something useful
 
 	def showMessage(self, title, message):
 		self.icon.showMessage(title, message)
