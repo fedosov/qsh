@@ -39,6 +39,11 @@ class Connector():
 		self.known_hosts = dict()
 		self.known_hosts_updated_callback()
 
+	def updateKnownHosts(self):
+		self.markKnownHostsAsDead()
+		QtCore.QTimer.singleShot(500, self.deleteAllDeadKnownHosts)
+		self.helloAll()
+
 	def markKnownHostsAsDead(self):
 		for key in self.known_hosts.keys():
 			self.known_hosts[key]["alive"] = False

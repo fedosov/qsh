@@ -45,10 +45,10 @@ class QSH(QApplication):
 		self.updateTrayIconMenu()
 
 		# hi there!
-		self.helloAll()
+		self.connector.updateKnownHosts()
 
 		self.helloAllTimer = QtCore.QTimer(self)
-		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.helloAll)
+		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.connector.updateKnownHosts)
 		self.helloAllTimer.start(AppConfig.get_heartbeat_interval())
 
 	def processReceivedImage(self, data_uuid=None, data=None):
@@ -186,13 +186,6 @@ class QSH(QApplication):
 		self.updateTrayIconMenu()
 		self.trayIconSetIconDefault()
 		self.screenViewDialog.showWindow()
-
-	def helloAll(self):
-		""" Anybody here?
-		"""
-		self.connector.markKnownHostsAsDead()
-		QtCore.QTimer.singleShot(500, self.connector.deleteAllDeadKnownHosts)
-		self.connector.helloAll()
 
 	def beforeQuit(self):
 		self.connector.byeAll()
