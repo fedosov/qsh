@@ -52,6 +52,7 @@ parser = argparse.ArgumentParser(description="QSH")
 parser.add_argument("--tcp-port", dest="tcp_port", default=7740, type=int, help="TCP port")
 parser.add_argument("--udp-port", dest="udp_port", default=7741, type=int, help="broadcast (UDP) port")
 parser.add_argument("--config", dest="config", default=AppConfig.get_config_path(), type=str, help="config file location")
+parser.add_argument("--loglevel", dest="loglevel", default="ERROR", type=str, help="logging level (DEBUG, INFO, ERROR)")
 args = parser.parse_args()
 
 APP_PORT = args.tcp_port
@@ -63,4 +64,4 @@ APP_BYE_MSG = "QSH_BYE"
 SCREEN_IMAGE_TYPE = "PNG"
 SCREEN_IMAGE_QUALITY = 40
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=getattr(logging, args.loglevel))
