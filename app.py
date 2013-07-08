@@ -69,22 +69,17 @@ class QSH(QApplication):
 
 		self.trayIcon.setIconDefault()
 
-	def updateScreenshot(self):
-		""" Capture screenshot
-		"""
-		desktop_size = self.desktop().size()
-		self.screen = QtGui.QPixmap.grabWindow(self.desktop().winId())
-		self.screen = self.screen.copy(0, 0, desktop_size.width(), desktop_size.height())
-
 	def shareScreen(self, host, port):
 		""" Send screenshot
 		"""
 		self.trayIcon.setIconLoading()
-		self.updateScreenshot()
+
+		# capture screenshot
 		screenBA = QtCore.QByteArray()
 		screenBuf = QtCore.QBuffer(screenBA)
 		screenBuf.open(QtCore.QBuffer.WriteOnly)
-		self.screen.save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
+		QPixmap.grabWindow(self.desktop().winId()).save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
+
 		self.connector.submitScreen(host, port, screenBA)
 
 	def showConfigurationDialog(self):
