@@ -47,7 +47,8 @@ class MainTrayIcon(QtCore.QObject):
 		self.icon.setContextMenu(self.menu)
 		if reason == QSystemTrayIcon.MiddleClick:
 			self.icon.setContextMenu(None)
-			# TODO: middle button clicked, do something useful
+			if self.incomingTotal:
+				self.actionShowScreenViewDialog.trigger()
 		elif reason == QSystemTrayIcon.DoubleClick:
 			self.icon.setContextMenu(None)
 			# TODO: middle button clicked+doubleclicked, do something useful
