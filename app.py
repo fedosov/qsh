@@ -11,8 +11,8 @@ from PySide import QtGui, QtCore
 
 # QSH
 from networking.connector import Connector
-from dialogs import ConfigurationDialog, ScreenViewDialog
 from config import AppConfig, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY
+from dialogs import ConfigurationDialog, ScreenViewDialog, MainTrayIcon
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,6 @@ class QSH(QApplication):
 		super(QSH, self).__init__(*args, **kwargs)
 		self.setQuitOnLastWindowClosed(False)
 
-		# state
-		self.incomingTotal = 0
-		self.incomingUnread = 0
-
 		# signals
 		self.aboutToQuit.connect(self.beforeQuit)
 
@@ -35,14 +31,15 @@ class QSH(QApplication):
 
 		# networking
 		self.connector = Connector()
-		self.connector.known_hosts_updated_callback = self.updateTrayIconMenu
-		self.connector.got_image_callback = self.processReceivedImage
-		self.connector.receiving_start_callback = self.trayIconSetIconLoading
-		self.connector.sending_end_callback = self.trayIconSetIconDefault
 
 		# tray
-		self.initTrayIcon()
-		self.updateTrayIconMenu()
+		self.trayIcon = MainTrayIcon(self)
+
+		# networking callbacks
+		self.connector.known_hosts_updated_callback = self.trayIcon.updateTrayIconMenu
+		self.connector.got_image_callback = self.processReceivedImage
+		self.connector.receiving_start_callback = self.trayIcon.trayIconSetIconLoading
+		self.connector.sending_end_callback = self.trayIcon.trayIconSetIconDefault
 
 		# hi there!
 		self.connector.updateKnownHosts()
@@ -58,104 +55,14 @@ class QSH(QApplication):
 			receivedImagesCount = self.screenViewDialog.processReceivedImage(data_uuid=data_uuid,
 			                                                                 data=data,
 			                                                                 known_hosts=self.connector.known_hosts)
-			self.incomingTotal += receivedImagesCount
+			self.trayIcon.incomingTotal += receivedImagesCount
 			if self.screenViewDialog.isVisible():
 				self.screenViewDialog.showWindow()
 			else:
-				self.incomingUnread += receivedImagesCount
-			self.updateTrayIconMenu()
+				self.trayIcon.incomingUnread += receivedImagesCount
+			self.trayIcon.updateTrayIconMenu()
 
-		self.trayIconSetIconDefault()
-
-	def initTrayIcon(self):
-		""" Tray icon initialisation
-		"""
-		self.trayIconIcon = QIcon("resources/img/menu_bar_extras_icon.png")
-		self.trayIconIcon.addPixmap("resources/img/menu_bar_extras_icon_alt.png", QIcon.Selected)
-
-		self.trayIconLoading = QIcon("resources/img/menu_bar_extras_icon__loading.png")
-		self.trayIconLoading.addPixmap("resources/img/menu_bar_extras_icon__loading_alt.png", QIcon.Selected)
-
-		self.trayIconUnreadPixmap = QPixmap("resources/img/menu_bar_extras_icon__unread.png")
-		self.trayIconUnreadAltPixmap = QPixmap("resources/img/menu_bar_extras_icon__unread_alt.png")
-
-		self.actionQuit = QAction(u"Quit", self, triggered=self.quit)
-		self.actionShowConfigurationDialog = QAction(u"Configuration", self, triggered=self.showConfigurationDialog)
-		self.actionShowScreenViewDialog = QAction(self, triggered=self.showScreenViewDialog)
-
-		self.trayIconMenu = QMenu()
-		self.updateTrayIconMenu()
-
-		self.trayIcon = QSystemTrayIcon(self)
-		self.trayIconSetIconDefault()
-		self.trayIcon.setContextMenu(self.trayIconMenu)
-		self.trayIcon.show()
-
-	def trayIconSetIconDefault(self):
-		if self.incomingUnread > 0:
-			self.trayIconSetIconUnread(self.incomingUnread)
-		else:
-			self.trayIcon.setIcon(self.trayIconIcon)
-
-	def trayIconSetIconLoading(self):
-		self.trayIcon.setIcon(self.trayIconLoading)
-
-	def trayIconSetIconUnread(self, count=1):
-		font = QFont("Tahoma", 8, QFont.Bold)
-		font.setStyleHint(QFont.SansSerif)
-		font.setStyleStrategy(QFont.PreferQuality)
-
-		new_icon_pixmap = self.trayIconUnreadPixmap.copy()
-		painter = QPainter(new_icon_pixmap)
-		painter.setFont(font)
-		painter.drawText(0, 3, 14, 16, QtCore.Qt.AlignRight, str(count))
-		painter.end()
-
-		new_icon = QIcon(new_icon_pixmap)
-
-		new_icon_alt_pixmap = self.trayIconUnreadAltPixmap.copy()
-		painter = QPainter(new_icon_alt_pixmap)
-		painter.setFont(font)
-		painter.setPen(QPen(QColor(255, 255, 255)))
-		painter.drawText(0, 3, 15, 16, QtCore.Qt.AlignRight, str(count))
-		painter.end()
-
-		new_icon.addPixmap(new_icon_alt_pixmap, QIcon.Selected)
-
-		self.trayIcon.setIcon(new_icon)
-
-	def updateTrayIconMenu(self):
-		self.trayIconMenu.clear()
-
-		# DEBUG (app UUID in tray icon popup menu):
-		from config import APP_UUID
-		username = AppConfig.get_username()
-		if username:
-			trayIconMenuUUIDAction = QAction(unicode(username), self)
-		else:
-			trayIconMenuUUIDAction = QAction(unicode(APP_UUID), self)
-		trayIconMenuUUIDAction.setDisabled(True)
-		self.trayIconMenu.addAction(trayIconMenuUUIDAction)
-		self.trayIconMenu.addSeparator()
-
-		# known hosts list
-		if self.connector and self.connector.known_hosts:
-			for host_uuid, host_data in self.connector.known_hosts.iteritems():
-				if host_data["username"]:
-					host_str = "%s - [%s:%s]" % (host_data["username"].decode("utf-8"), host_data["host"].toString(), host_data["port"])
-				else:
-					host_str = "[%s:%s]" % (host_data["host"].toString(), host_data["port"])
-				self.trayIconMenu.addAction(QAction(host_str, self, triggered=lambda: self.shareScreen(host_data["host"], host_data["port"])))
-			self.trayIconMenu.addSeparator()
-
-		# incoming data
-		self.actionShowScreenViewDialog.setDisabled(self.incomingTotal == 0)
-		self.actionShowScreenViewDialog.setText("(%i) Incoming" % self.incomingUnread if self.incomingUnread else "Incoming")
-		self.trayIconMenu.addAction(self.actionShowScreenViewDialog)
-		self.trayIconMenu.addSeparator()
-
-		self.trayIconMenu.addAction(self.actionShowConfigurationDialog)
-		self.trayIconMenu.addAction(self.actionQuit)
+		self.trayIcon.trayIconSetIconDefault()
 
 	def updateScreenshot(self):
 		""" Capture screenshot
@@ -167,7 +74,7 @@ class QSH(QApplication):
 	def shareScreen(self, host, port):
 		""" Send screenshot
 		"""
-		self.trayIconSetIconLoading()
+		self.trayIcon.trayIconSetIconLoading()
 		self.updateScreenshot()
 		screenBA = QtCore.QByteArray()
 		screenBuf = QtCore.QBuffer(screenBA)
@@ -182,9 +89,9 @@ class QSH(QApplication):
 		self.config_dialog.raise_()
 
 	def showScreenViewDialog(self):
-		self.incomingUnread = 0
-		self.updateTrayIconMenu()
-		self.trayIconSetIconDefault()
+		self.trayIcon.incomingUnread = 0
+		self.trayIcon.updateTrayIconMenu()
+		self.trayIcon.trayIconSetIconDefault()
 		self.screenViewDialog.showWindow()
 
 	def beforeQuit(self):
