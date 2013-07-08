@@ -59,13 +59,7 @@ class ScreenViewDialog(QDialog):
 		screen_preview_label.setFont(QFont("Tahoma", 10))
 		screen_preview_box.layout().addWidget(screen_preview_label)
 
-		# growl.notify(
-		# 	noteType="Incoming screenshots",
-		# 	title="QSH: Screenshot received",
-		# 	description=screen_preview_label_text,
-		# 	sticky=False,
-		# 	priority=1,
-		# )
+		self.application.trayIcon.showMessage("QSH: Screenshot received", screen_preview_label_text)
 
 		# remove button
 		screen_preview_remove = QPushButton("Remove")

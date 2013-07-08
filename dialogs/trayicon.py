@@ -9,9 +9,11 @@ from PySide.QtGui import *
 from config import AppConfig
 
 
-class MainTrayIcon(object):
+class MainTrayIcon(QtCore.QObject):
 
 	def __init__(self, parent, callbacks):
+		super(MainTrayIcon, self).__init__(parent)
+
 		# state
 		self.incomingTotal = 0
 		self.incomingUnread = 0
@@ -39,6 +41,9 @@ class MainTrayIcon(object):
 		self.setIconDefault()
 		self.icon.setContextMenu(self.menu)
 		self.icon.show()
+
+	def showMessage(self, title, message):
+		self.icon.showMessage(title, message)
 
 	def updateMenu(self):
 		self.menu.clear()
