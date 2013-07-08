@@ -49,6 +49,7 @@ class QSH(QApplication):
 		# hi there!
 		self.connector.updateKnownHosts()
 
+		# periodically check whether hosts alive
 		self.helloAllTimer = QtCore.QTimer(self)
 		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.connector.updateKnownHosts)
 		self.helloAllTimer.start(AppConfig.get_heartbeat_interval())
