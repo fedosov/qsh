@@ -19,7 +19,7 @@ class ScreenViewDialog(QWidget):
 		self.application = application
 		self.setWindowTitle(u"QSH" % APP_UUID)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
-		self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+		self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
 		self.desktopWidget = QDesktopWidget()
