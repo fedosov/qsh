@@ -21,9 +21,12 @@ class ScreenViewDialog(QWidget):
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 		self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+		self.installEventFilter(ScreenViewDialogEventFilter(self))
 
 		self.desktopWidget = QDesktopWidget()
 		self.screenGeometry = self.desktopWidget.screenGeometry()
+
+		self.inFullScreenMode = False
 
 		layout = QHBoxLayout()
 		layout.setContentsMargins(0, 10, 0, 0)
@@ -146,6 +149,20 @@ class ScreenViewDialog(QWidget):
 			QtCore.QTimer.singleShot(0, self.showWindow)
 
 
+class ScreenViewDialogEventFilter(QtCore.QObject):
+
+	def eventFilter(self, obj, event):
+		""" Popup window lost focus (need to close)
+		"""
+		try:
+			assert isinstance(obj, ScreenViewDialog)
+			if event.type() == QtCore.QEvent.WindowDeactivate and not self.parent().inFullScreenMode:
+				self.parent().close()
+		except AssertionError:
+			pass
+		return QtCore.QObject.eventFilter(self, obj, event)
+
+
 class ScreenClickEventFilter(QtCore.QObject):
 
 	def eventFilter(self, obj, event):
@@ -155,17 +172,17 @@ class ScreenClickEventFilter(QtCore.QObject):
 		try:
 			assert isinstance(parent, ScreenViewDialog)
 			if event.type() == QtCore.QEvent.MouseButtonPress:
+				parent.inFullScreenMode = True
 				parent.screenPreviewShow(obj)
 				return True
 			if event.type() == QtCore.QEvent.MouseButtonRelease:
 				if obj.screen_preview_fs:
+					parent.inFullScreenMode = False
 					try:
-						obj.screen_preview_fs.deleteLater()
+						QtCore.QTimer.singleShot(0, obj.screen_preview_fs.deleteLater)
 					except RuntimeError:
 						# screen preview already deleted
 						pass
-				return True
-			else:
-				return QtCore.QObject.eventFilter(self, obj, event)
 		except AssertionError:
-			return QtCore.QObject.eventFilter(self, obj, event)
+			pass
+		return QtCore.QObject.eventFilter(self, obj, event)
