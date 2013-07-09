@@ -137,9 +137,9 @@ class ScreenViewDialog(QWidget):
 		screen_preview_box = self.sender().screen_preview_box
 		assert isinstance(screen_preview_box, QFrame)
 		screen_preview_box.deleteLater()
-		self.application.incomingTotal -= 1
+		self.application.trayIcon.incomingTotal -= 1
 		self.application.trayIcon.updateMenu()
-		if self.application.incomingTotal == 0:
+		if self.application.trayIcon.incomingTotal == 0:
 			self.close()
 		else:
 			QtCore.QTimer.singleShot(0, self.showWindow)
