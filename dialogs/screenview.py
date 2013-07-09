@@ -92,7 +92,7 @@ class ScreenViewDialog(QWidget):
 		self.move(iconCenter.x() - self.width() / 2, iconBottom.y() + 0)
 
 	def paintEvent(self, event):
-		windowBrush = QBrush(QColor(0, 0, 0, 160))
+		windowBrush = QBrush(QColor(0, 0, 0, 190))
 
 		painter = QPainter(self)
 		painter.setRenderHints(QPainter.Antialiasing, QPainter.HighQualityAntialiasing)
@@ -110,7 +110,7 @@ class ScreenViewDialog(QWidget):
 
 		painter.setClipPath(windowShapePath)
 		painter.setBrush(windowBrush)
-		painter.drawRect(0, 0, 1000, 1000)
+		painter.drawRect(-1, -1, self.width() + 2, self.height() + 2)
 
 	def screenPreviewShow(self, screen_preview):
 		""" Screen 'show' button click
