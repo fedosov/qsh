@@ -76,6 +76,7 @@ class ScreenViewDialog(QWidget):
 		screen_preview_box.layout().addWidget(screen_preview_remove)
 
 		self.layout().addWidget(screen_preview_box)
+		QtCore.QTimer.singleShot(0, self.updateWindowPositionAndSize)
 
 		return 1
 
