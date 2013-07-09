@@ -14,7 +14,7 @@ You can:
 
 ## Screenshots
 
-![](http://i.imgur.com/cwK5Rtu.png)
+![](http://i.imgur.com/FYwaokS.png)
 
 ## Download
 

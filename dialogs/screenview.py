@@ -11,23 +11,30 @@ from PySide import QtGui, QtCore
 from config import APP_UUID, SCREEN_IMAGE_TYPE
 
 
-class ScreenViewDialog(QDialog):
+class ScreenViewDialog(QWidget):
 
 	def __init__(self, application, parent=None):
 		super(ScreenViewDialog, self).__init__(parent)
 
 		self.application = application
 		self.setWindowTitle(u"QSH" % APP_UUID)
-		self.resize(160, 120)
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+		self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
 		self.desktopWidget = QDesktopWidget()
 		self.screenGeometry = self.desktopWidget.screenGeometry()
 
 		layout = QHBoxLayout()
-		layout.setContentsMargins(0, 0, 0, 0)
+		layout.setContentsMargins(0, 10, 0, 0)
 		layout.setSpacing(0)
 		self.setLayout(layout)
+
+		# labelTest = QLabel("TEST WINDOW")
+		# labelTest.setStyleSheet("QLabel { color: #FFF; }")
+		# layout.addWidget(labelTest)
+
+		# QtCore.QTimer.singleShot(300, self.showWindow)
 
 	def processReceivedImage(self, data_uuid, data, known_hosts):
 		""" Show received screenshot
@@ -52,6 +59,7 @@ class ScreenViewDialog(QDialog):
 		screen_preview_box.layout().addWidget(screen_preview)
 		screen_preview_label_text = "Unknown user"
 		screen_preview_label = QLabel()
+		screen_preview_label.setStyleSheet("QLabel { color: #FFF; }")
 		if data_uuid in known_hosts.keys():
 			screen_preview_label_text = known_hosts[data_uuid]["username"]
 		screen_preview_label_text = "%s @ %s" % (screen_preview_label_text, datetime.datetime.now().strftime("%H:%M"))
@@ -79,8 +87,30 @@ class ScreenViewDialog(QDialog):
 
 	def updateWindowPositionAndSize(self):
 		self.resize(self.minimumSizeHint())
-		self.move(self.screenGeometry.width() / 2 - self.width() / 2,
-		          self.screenGeometry.height() - 400)
+		iconCenter = self.application.trayIcon.icon.geometry().center()
+		iconBottom = self.application.trayIcon.icon.geometry().bottomLeft()
+		self.move(iconCenter.x() - self.width() / 2, iconBottom.y() + 0)
+
+	def paintEvent(self, event):
+		windowBrush = QBrush(QColor(0, 0, 0, 160))
+
+		painter = QPainter(self)
+		painter.setRenderHints(QPainter.Antialiasing, QPainter.HighQualityAntialiasing)
+
+		windowShapePath = QPainterPath()
+		windowShapePath.setFillRule(QtCore.Qt.WindingFill)
+		# triangle
+		triangleCenter = self.width() / 2
+		windowShapePath.moveTo(triangleCenter - 6, 8)
+		windowShapePath.lineTo(triangleCenter, 0)
+		windowShapePath.lineTo(triangleCenter + 6, 8)
+		windowShapePath.closeSubpath()
+		# rounded window
+		windowShapePath.addRoundedRect(0, 8, self.width(), self.height() - 8, 8.0, 8.0)
+
+		painter.setClipPath(windowShapePath)
+		painter.setBrush(windowBrush)
+		painter.drawRect(0, 0, 1000, 1000)
 
 	def screenPreviewShow(self, screen_preview):
 		""" Screen 'show' button click
