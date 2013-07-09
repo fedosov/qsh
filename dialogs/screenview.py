@@ -57,6 +57,10 @@ class ScreenViewDialog(QWidget):
 		screen_preview.setPixmap(screen)
 		screen_preview.installEventFilter(ScreenClickEventFilter(self))
 		screen_preview.setCursor(QtCore.Qt.PointingHandCursor)
+		screen_preview.setStyleSheet("""
+		QLabel { border: 2px solid transparent; border-radius: 3px; }
+		QLabel:hover { border-color: #fff; }
+		""")
 
 		# add screen label (sender, date)
 		screen_preview_box.layout().addWidget(screen_preview)
