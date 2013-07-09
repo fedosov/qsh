@@ -81,7 +81,7 @@ class Connector():
 				data_msg, data_uuid = data_fields[0], data_fields[1]
 
 				# message received from Qsh and app UUID differs
-				if data_uuid != unicode(APP_UUID):
+				if data_uuid != unicode(APP_UUID) or APP_DEBUG:
 
 					# greeting from other node
 					if data_msg == APP_HELLO_MSG:

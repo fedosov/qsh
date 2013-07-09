@@ -53,8 +53,10 @@ parser.add_argument("--tcp-port", dest="tcp_port", default=7740, type=int, help=
 parser.add_argument("--udp-port", dest="udp_port", default=7741, type=int, help="broadcast (UDP) port")
 parser.add_argument("--config", dest="config", default=AppConfig.get_config_path(), type=str, help="config file location")
 parser.add_argument("--loglevel", dest="loglevel", default="ERROR", type=str, help="logging level (DEBUG, INFO, ERROR)")
+parser.add_argument("--debug", dest="debug", default=False, type=bool, help="debug")
 args = parser.parse_args()
 
+APP_DEBUG = args.debug
 APP_PORT = args.tcp_port
 APP_BROADCAST_PORT = args.udp_port
 APP_UUID = uuid.uuid4()
