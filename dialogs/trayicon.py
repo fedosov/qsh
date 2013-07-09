@@ -14,6 +14,8 @@ class MainTrayIcon(QtCore.QObject):
 	def __init__(self, parent, callbacks):
 		super(MainTrayIcon, self).__init__(parent)
 
+		self.middle_click_callback = lambda: None
+
 		# state
 		self.incomingTotal = 0
 		self.incomingUnread = 0
@@ -46,9 +48,7 @@ class MainTrayIcon(QtCore.QObject):
 	def activated(self, reason):
 		self.icon.setContextMenu(self.menu)
 		if reason == QSystemTrayIcon.MiddleClick:
-			self.icon.setContextMenu(None)
-			if self.incomingTotal:
-				self.actionShowScreenViewDialog.trigger()
+			self.middle_click_callback()
 		elif reason == QSystemTrayIcon.DoubleClick:
 			self.icon.setContextMenu(None)
 			# TODO: middle button clicked+doubleclicked, do something useful

@@ -39,6 +39,7 @@ class QSH(QApplication):
 			"configuration": self.showConfigurationDialog,
 			"incoming": self.showScreenViewDialog
 		})
+		self.trayIcon.middle_click_callback = self.trayIconMiddleClick
 
 		# networking callbacks
 		self.connector.known_hosts_updated_callback = self.trayIcon.updateMenu
@@ -53,6 +54,14 @@ class QSH(QApplication):
 		self.helloAllTimer = QtCore.QTimer(self)
 		self.connect(self.helloAllTimer, QtCore.SIGNAL("timeout()"), self.connector.updateKnownHosts)
 		self.helloAllTimer.start(AppConfig.get_heartbeat_interval())
+
+	def trayIconMiddleClick(self):
+		self.trayIcon.icon.setContextMenu(None)
+		if not self.screenViewDialog.isVisible():
+			if self.trayIcon.incomingTotal:
+				self.trayIcon.actionShowScreenViewDialog.trigger()
+		else:
+			self.screenViewDialog.close()
 
 	def processReceivedImage(self, data_uuid=None, data=None):
 		""" Show received screenshot
