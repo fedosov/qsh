@@ -33,12 +33,6 @@ class ScreenViewDialog(QWidget):
 		layout.setSpacing(0)
 		self.setLayout(layout)
 
-		# labelTest = QLabel("TEST WINDOW")
-		# labelTest.setStyleSheet("QLabel { color: #FFF; }")
-		# layout.addWidget(labelTest)
-
-		# QtCore.QTimer.singleShot(300, self.showWindow)
-
 	def processReceivedImage(self, data_uuid, data, known_hosts):
 		""" Show received screenshot
 		"""
@@ -48,41 +42,61 @@ class ScreenViewDialog(QWidget):
 			# received broken image data
 			return 0
 
-		screen_preview_box = QFrame()
-		screen_preview_box.setLayout(QVBoxLayout())
-		screen_preview = QLabel()
-		screen_preview.setFixedHeight(100)
-		screen_preview.original_pixmap = screen.copy()
+		frameScreenPreview = QFrame()
+		frameScreenPreview.setLayout(QVBoxLayout())
+
+		imageScreenPreview = QLabel()
+		imageScreenPreview.original_pixmap = screen.copy()
 		screen = screen.scaledToHeight(100, QtCore.Qt.SmoothTransformation)
-		screen_preview.setPixmap(screen)
-		screen_preview.installEventFilter(ScreenClickEventFilter(self))
-		screen_preview.setCursor(QtCore.Qt.PointingHandCursor)
-		screen_preview.setStyleSheet("""
-		QLabel { border: 2px solid transparent; border-radius: 3px; }
-		QLabel:hover { border-color: #fff; }
+		imageScreenPreview.setFixedSize(screen.width(), 100)
+		imageScreenPreview.setPixmap(screen)
+		imageScreenPreview.installEventFilter(ScreenClickEventFilter(self))
+		imageScreenPreview.setCursor(QtCore.Qt.PointingHandCursor)
+		imageScreenPreview.setStyleSheet("""
+		QLabel {
+			border: 2px solid transparent;
+			border-radius: 3px;
+		}
+		QLabel:hover {
+			border-color: #fff;
+		}
 		""")
+		frameScreenPreview.layout().addWidget(imageScreenPreview)
 
 		# add screen label (sender, date)
-		screen_preview_box.layout().addWidget(screen_preview)
-		screen_preview_label_text = "Unknown user"
-		screen_preview_label = QLabel()
-		screen_preview_label.setStyleSheet("QLabel { color: #FFF; }")
+		labelScreenPreviewText = "Unknown user"
+		labelScreenPreview = QLabel()
+		labelScreenPreview.setStyleSheet("QLabel { color: #FFF; }")
 		if data_uuid in known_hosts.keys():
-			screen_preview_label_text = known_hosts[data_uuid]["username"]
-		screen_preview_label_text = "%s @ %s" % (screen_preview_label_text, datetime.datetime.now().strftime("%H:%M"))
-		screen_preview_label.setText(screen_preview_label_text)
-		screen_preview_label.setFont(QFont("Tahoma", 10))
-		screen_preview_box.layout().addWidget(screen_preview_label)
+			labelScreenPreviewText = known_hosts[data_uuid]["username"]
+		labelScreenPreviewText = "%s @ %s" % (labelScreenPreviewText, datetime.datetime.now().strftime("%H:%M"))
+		labelScreenPreview.setText(labelScreenPreviewText)
+		labelScreenPreview.setFont(QFont("Tahoma", 10))
+		frameScreenPreview.layout().addWidget(labelScreenPreview)
 
-		self.application.trayIcon.showMessage("QSH: Screenshot received", screen_preview_label_text)
+		self.application.trayIcon.showMessage("QSH: Screenshot received", labelScreenPreviewText)
 
 		# remove button
-		screen_preview_remove = QPushButton("Remove")
-		screen_preview_remove.screen_preview_box = screen_preview_box
-		screen_preview_remove.clicked.connect(self.screenPreviewRemoveClicked)
-		screen_preview_box.layout().addWidget(screen_preview_remove)
+		buttonScreenPreviewRemove = QPushButton("remove")
+		buttonScreenPreviewRemove.screen_preview_box = frameScreenPreview
+		buttonScreenPreviewRemove.clicked.connect(self.screenPreviewRemoveClicked)
+		buttonScreenPreviewRemove.setStyleSheet("""
+		QPushButton {
+			background-color: rgba(0, 0, 0, 50);
+			border-bottom-left-radius: 5px;
+			color: #fff;
+			font-size: 10px;
+			padding: 3px 4px;
+		}
+		QPushButton:hover {
+			background-color: rgba(0, 0, 0, 150);
+		}
+		""")
+		buttonScreenPreviewRemove.setParent(imageScreenPreview)
+		buttonScreenPreviewRemove.show()
+		buttonScreenPreviewRemove.move(imageScreenPreview.geometry().width() - buttonScreenPreviewRemove.geometry().width(), 0)
 
-		self.layout().addWidget(screen_preview_box)
+		self.layout().addWidget(frameScreenPreview)
 		QtCore.QTimer.singleShot(0, self.updateWindowPositionAndSize)
 
 		return 1
@@ -180,7 +194,7 @@ class ScreenClickEventFilter(QtCore.QObject):
 				parent.screenPreviewShow(obj)
 				return True
 			if event.type() == QtCore.QEvent.MouseButtonRelease:
-				if obj.screen_preview_fs:
+				if hasattr(obj, "screen_preview_fs") and obj.screen_preview_fs:
 					parent.inFullScreenMode = False
 					try:
 						QtCore.QTimer.singleShot(0, obj.screen_preview_fs.deleteLater)
