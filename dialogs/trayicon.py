@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 __author__ = "Mikhail Fedosov <tbs.micle@gmail.com>"
 
+from functools import partial
+
 # PySide
 from PySide import QtCore
 from PySide.QtGui import *
@@ -77,7 +79,7 @@ class MainTrayIcon(QtCore.QObject):
 					host_str = "%s - [%s:%s]" % (host_data["username"].decode("utf-8"), host_data["host"].toString(), host_data["port"])
 				else:
 					host_str = "[%s:%s]" % (host_data["host"].toString(), host_data["port"])
-				self.menu.addAction(QAction(host_str, self.parent, triggered=lambda: self.parent.shareScreen(host_data["host"], host_data["port"])))
+				self.menu.addAction(QAction(host_str, self.parent, triggered=partial(self.parent.shareScreen, host_data)))
 			self.menu.addSeparator()
 
 		# incoming data

@@ -79,7 +79,7 @@ class QSH(QApplication):
 
 		self.trayIcon.setIconDefault()
 
-	def shareScreen(self, host, port):
+	def shareScreen(self, host_data):
 		""" Send screenshot
 		"""
 		self.trayIcon.setIconLoading()
@@ -90,7 +90,7 @@ class QSH(QApplication):
 		screenBuf.open(QtCore.QBuffer.WriteOnly)
 		QPixmap.grabWindow(self.desktop().winId()).save(screenBuf, SCREEN_IMAGE_TYPE, SCREEN_IMAGE_QUALITY)
 
-		self.connector.submitScreen(host, port, screenBA)
+		self.connector.submitScreen(host_data["host"], host_data["port"], screenBA)
 
 	def showConfigurationDialog(self):
 		self.config_dialog = ConfigurationDialog(self)
