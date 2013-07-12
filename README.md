@@ -20,7 +20,9 @@ You can:
 
 [![](http://roto1.net/ponscripter/media/icon-dmg.png)](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg) [qsh.dmg](https://dl.dropboxusercontent.com/u/26256/qsh/qsh.dmg)
 
-## Setup
+-----
+
+## Contributing
 
 ### Environment
 
@@ -37,7 +39,7 @@ $ sudo ipfw add pipe 1 all from any to any && sudo ipfw pipe 1 config bw 512Kbit
 $ sudo ipfw flush
 ```
 
-## OS X Build
+### OS X Build
 
 ```
 $ pip install py2app
